@@ -1,0 +1,13 @@
+name: UKit
+main: cat.nyaa.ukit.SpigotLoader
+version: 1.0-SNAPSHOT
+api-version: 1.18
+authors:
+  - Nyaacat Community
+commands:
+  ukit:
+    description: "ukit commands. Use /ukit help for more information."
+    usage: /ukit <args...>
+    aliases:
+      - nu
+      - u
