@@ -9,5 +9,4 @@ commands:
     description: "ukit commands. Use /ukit help for more information."
     usage: /ukit <args...>
     aliases:
-      - nu
       - u

@@ -70,6 +70,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] args) {
         if (args.length == 0) {
             sender.sendMessage(language.commonLang.helpMessage.produce());
+            return true;
         }
         SubCommands subCommands;
         try {
