@@ -1,5 +1,6 @@
 package cat.nyaa.ukit;
 
+import cat.nyaa.ukit.chat.ChatLang;
 import cat.nyaa.ukit.lock.LockLang;
 import cat.nyaa.ukit.show.ShowLang;
 import cat.nyaa.ukit.signedit.SignEditLang;
@@ -11,4 +12,5 @@ public class MainLang {
     public SitLang sitLang = new SitLang();
     public SignEditLang signEditLang = new SignEditLang();
     public LockLang lockLang = new LockLang();
+    public ChatLang chatLang = new ChatLang();
 }

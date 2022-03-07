@@ -1,5 +1,7 @@
 package cat.nyaa.ukit;
 
+import cat.nyaa.ecore.EconomyCore;
+import cat.nyaa.ukit.chat.ChatFunction;
 import cat.nyaa.ukit.lock.LockFunction;
 import cat.nyaa.ukit.show.ShowFunction;
 import cat.nyaa.ukit.signedit.SignEditFunction;
@@ -8,10 +10,13 @@ import cat.nyaa.ukit.sit.SitFunction;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import com.google.gson.GsonBuilder;
 import land.melon.lab.simplelanguageloader.SimpleLanguageLoader;
+import net.milkbowl.vault.chat.Chat;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.checkerframework.checker.units.qual.C;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -29,10 +34,13 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     public MainConfig config;
     public File languageFile = new File(getDataFolder(), "language.json");
     public File configFile = new File(getDataFolder(), "config.json");
+    public Chat chatProvider = null;
+    public EconomyCore economyProvider = null;
     private SitFunction sitFunction;
     private ShowFunction showFunction;
     private SignEditFunction signEditFunction;
     private LockFunction lockFunction;
+    private ChatFunction chatFunction;
 
     @Override
     public void onEnable() {
@@ -42,10 +50,13 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         this.getServer().getPluginCommand("ukit").setExecutor(this);
         this.getServer().getPluginCommand("ukit").setTabCompleter(this);
 
+        IGNORE_RESULT(setupEconomy() && setupChat());
+
         sitFunction = new SitFunction(this);
         showFunction = new ShowFunction(this);
         signEditFunction = new SignEditFunction(this);
         lockFunction = new LockFunction(this);
+        chatFunction = new ChatFunction(this);
 
         this.getServer().getPluginManager().registerEvents(sitFunction, this);
 
@@ -94,6 +105,8 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
             case LOCK -> invokeCommand(lockFunction, sender, command, label, argTruncated);
 
+            case CHAT -> invokeCommand(chatFunction, sender, command, label, argTruncated);
+
         }
         return true;
     }
@@ -126,6 +139,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
                     case SIT -> completeList = sitFunction.tabComplete(sender, command, alias, argsTruncated);
                     case SIGNEDIT -> completeList = signEditFunction.tabComplete(sender, command, alias, argsTruncated);
                     case LOCK -> completeList = lockFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case CHAT -> completeList = chatFunction.tabComplete(sender, command, alias, argsTruncated);
                 }
             } catch (IllegalArgumentException ignore) {
             }
@@ -133,15 +147,26 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         return completeList;
     }
 
-    private void IGNORE_RESULT(Object o) {
+    private boolean setupEconomy() {
+        var rsp = Bukkit.getServicesManager().getRegistration(EconomyCore.class);
+        economyProvider = rsp.getProvider();
+        return economyProvider != null;
     }
+
+    private boolean setupChat() {
+        var rsp = Bukkit.getServicesManager().getRegistration(Chat.class);
+        chatProvider = rsp.getProvider();
+        return chatProvider != null;
+    }
+
+    private void IGNORE_RESULT(Object o) {}
 
     enum SubCommands {
         RELOAD,
         SHOW,
         SIT,
         SIGNEDIT,
-        LOCK
+        LOCK,
+        CHAT
     }
-
 }

@@ -18,7 +18,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
@@ -32,7 +31,7 @@ public class SitFunction implements Listener, SubCommandExecutor, SubTabComplete
 
     public SitFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
-        SIT_META_KEY = new NamespacedKey(pluginInstance,"SIT_MARKER");
+        SIT_META_KEY = new NamespacedKey(pluginInstance, "SIT_MARKER");
     }
 
     @EventHandler
@@ -76,7 +75,7 @@ public class SitFunction implements Listener, SubCommandExecutor, SubTabComplete
         armorStandEntity.setInvulnerable(true);
         armorStandEntity.setGravity(false);
         armorStandEntity.setBasePlate(false);
-        armorStandEntity.getPersistentDataContainer().set(SIT_META_KEY, PersistentDataType.LONG_ARRAY,Vector3D.fromBukkitLocation(event.getPlayer().getLocation()).toLangArray());
+        armorStandEntity.getPersistentDataContainer().set(SIT_META_KEY, PersistentDataType.LONG_ARRAY, Vector3D.fromBukkitLocation(event.getPlayer().getLocation()).toLangArray());
         armorStandEntity.addPassenger(event.getPlayer());
     }
 
@@ -86,7 +85,7 @@ public class SitFunction implements Listener, SubCommandExecutor, SubTabComplete
             return;
         }
         var armorStand = event.getDismounted();
-        var initialLocationInVector = Vector3D.fromLongArray(armorStand.getPersistentDataContainer().get(SIT_META_KEY,PersistentDataType.LONG_ARRAY));
+        var initialLocationInVector = Vector3D.fromLongArray(armorStand.getPersistentDataContainer().get(SIT_META_KEY, PersistentDataType.LONG_ARRAY));
         var teleportLocation = event.getEntity().getLocation();
         teleportLocation.setX(initialLocationInVector.x);
         teleportLocation.setY(initialLocationInVector.y);
@@ -103,7 +102,7 @@ public class SitFunction implements Listener, SubCommandExecutor, SubTabComplete
     }
 
     private boolean isSitMarker(Entity entity) {
-        return entity == null || (entity.getType() == EntityType.ARMOR_STAND && entity.getPersistentDataContainer().has(SIT_META_KEY,PersistentDataType.LONG_ARRAY));
+        return entity == null || (entity.getType() == EntityType.ARMOR_STAND && entity.getPersistentDataContainer().has(SIT_META_KEY, PersistentDataType.LONG_ARRAY));
     }
 
     @Override

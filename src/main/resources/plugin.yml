@@ -1,6 +1,11 @@
 name: UKit
 main: cat.nyaa.ukit.SpigotLoader
 version: ${project.version}
+softdepend:
+  - Vault
+  - ECore
+  - EssentialsChat
+  - LuckPerms
 api-version: 1.18
 authors:
   - Nyaacat Community
