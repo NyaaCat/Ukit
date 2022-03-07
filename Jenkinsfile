@@ -6,7 +6,7 @@ pipeline {
                     jdk "jdk17"
                 }
                 steps {
-                    sh 'mvn -DmavenLocalDistDir=${MAVEN_DIR} deploy'
+                    sh 'mvn clean package'
                 }
             }
         }
