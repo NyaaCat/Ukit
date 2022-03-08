@@ -59,7 +59,7 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                     Pair.of("max", pluginInstance.config.signEditConfig.maxLengthPerLine)
             ));
         } else {
-            consumer.accept(new Pair<>(line, finalLine));
+            consumer.accept(new Pair<>(line - 1, finalLine));
         }
         return false;
     }
