@@ -109,12 +109,15 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
 
     private List<String> msgFromItemStack(ItemStack item) {
         List<String> result = new ArrayList<>(4);
+        for (int i = 0; i < 4; i++) {
+            result.add(i,"");
+        }
         if (item.hasItemMeta() && item.getItemMeta() instanceof BlockStateMeta) {
             BlockStateMeta blockStateMeta = (BlockStateMeta) item.getItemMeta();
             if (blockStateMeta.hasBlockState() && blockStateMeta.getBlockState() instanceof Sign) {
                 Sign sign = ((Sign) blockStateMeta.getBlockState());
                 for (int i = 0; i < 4; i++) {
-                    result.add(i, sign.getLine(i));
+                    result.set(i, sign.getLine(i));
                 }
             }
         }
