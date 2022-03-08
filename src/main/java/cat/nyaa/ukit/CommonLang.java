@@ -3,8 +3,9 @@ package cat.nyaa.ukit;
 import land.melon.lab.simplelanguageloader.components.Text;
 
 public class CommonLang {
-    public Text playerOnlyCommand = Text.of("This command can only be used by players.");
-    public Text permissionDenied = Text.of("You don't have permission to use this command.");
+    public Text playerOnlyCommand = Text.of("&7You could only use this command as a player.");
+    public Text permissionDenied = Text.of("&cSorry, but you don't have permission to use this command.");
+    public Text reloadSuccess = Text.of("&7UKit reloaded.");
     public Text helpMessage = Text.of(
             "&7Usage of /ukit:",
             "&7    /ukit lock: custom item frame lock",

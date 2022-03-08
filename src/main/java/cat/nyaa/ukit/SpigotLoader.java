@@ -45,11 +45,13 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     public void onEnable() {
         IGNORE_RESULT(getDataFolder().mkdir());
         logger = this.getLogger();
+        if (!reload()) {
+            getLogger().severe("Failed to load configs, disabling...");
+            getPluginLoader().disablePlugin(this);
+        }
 
         this.getServer().getPluginCommand("ukit").setExecutor(this);
         this.getServer().getPluginCommand("ukit").setTabCompleter(this);
-
-        IGNORE_RESULT(setupEconomy() && setupChat());
 
         sitFunction = new SitFunction(this);
         showFunction = new ShowFunction(this);
@@ -58,14 +60,10 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         chatFunction = new ChatFunction(this);
 
         this.getServer().getPluginManager().registerEvents(sitFunction, this);
-
-        if (!reload()) {
-            getLogger().severe("Failed to load configs, disabling...");
-            getPluginLoader().disablePlugin(this);
-        }
     }
 
     public boolean reload() {
+        IGNORE_RESULT(setupEconomy() && setupChat());
         try {
             config = configLoader.loadOrInitialize(configFile, MainConfig.class, MainConfig::new);
             language = configLoader.loadOrInitialize(languageFile, MainLang.class, MainLang::new);
@@ -94,6 +92,9 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
             case RELOAD -> {
                 if (!sender.hasPermission("ukit.reload")) {
                     sender.sendMessage(language.commonLang.permissionDenied.produce());
+                }else{
+                    reload();
+                    sender.sendMessage(language.commonLang.reloadSuccess.produce());
                 }
             }
             case SHOW -> invokeCommand(showFunction, sender, command, label, argTruncated);
