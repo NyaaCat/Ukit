@@ -16,7 +16,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.units.qual.C;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -149,17 +148,22 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
     private boolean setupEconomy() {
         var rsp = Bukkit.getServicesManager().getRegistration(EconomyCore.class);
-        economyProvider = rsp.getProvider();
+        if (rsp != null) {
+            economyProvider = rsp.getProvider();
+        }
         return economyProvider != null;
     }
 
     private boolean setupChat() {
         var rsp = Bukkit.getServicesManager().getRegistration(Chat.class);
-        chatProvider = rsp.getProvider();
+        if (rsp != null) {
+            chatProvider = rsp.getProvider();
+        }
         return chatProvider != null;
     }
 
-    private void IGNORE_RESULT(Object o) {}
+    private void IGNORE_RESULT(Object o) {
+    }
 
     enum SubCommands {
         RELOAD,

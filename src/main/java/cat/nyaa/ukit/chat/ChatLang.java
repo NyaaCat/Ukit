@@ -12,7 +12,7 @@ public class ChatLang {
     );
     public TailLang prefixLang = new TailLang(
             Text.of("&cYou can't offer the cost of {exp} level exp and {money}{currencyUnit} to change your prefix"),
-            Text.of("&c{text} is too long (max {max} characters) to apply your prefix setting"),
+            Text.of("&c{text}&c is too long (max {max} characters) to apply your prefix setting"),
             Text.of("&7Success to apply {text}&7 as your prefix"),
             Text.of("&7Success to remove your prefix."),
             Text.of("&cThis feature is disabled")

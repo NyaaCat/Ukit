@@ -8,6 +8,7 @@ import land.melon.lab.simplelanguageloader.utils.Pair;
 import land.melon.lab.simplelanguageloader.utils.TextUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -47,7 +48,10 @@ public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
 
             if (args[1].equalsIgnoreCase("set")) {
                 if (args.length < 3) return false;
-                var joinedText = ColorConverter.translateToLegacyColorText("&r" + String.join(" ", Arrays.copyOfRange(args, 2, args.length)) + "&r", '&');
+                var joinedText = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+                if (!joinedText.startsWith("&r")) joinedText = "&r" + joinedText;
+                if (!joinedText.endsWith("&r")) joinedText = joinedText + "&r";
+                joinedText = ColorConverter.translateToLegacyColorText(joinedText, '&');
                 if (settings.enabled) {
                     if (senderPlayer.getLevel() < settings.expCostLvl || pluginInstance.economyProvider.getPlayerBalance(senderPlayer.getUniqueId()) < settings.moneyCost) {
                         senderPlayer.sendMessage(lang.cantOffered.produce(
@@ -109,11 +113,39 @@ public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
 
     @Override
     public String getHelp() {
-        return null;
+        return pluginInstance.language.chatLang.help.produce();
     }
 
     @Override
     public List<String> tabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return null;
+        if (sender instanceof ConsoleCommandSender) {
+            return null;
+        }
+        if (args.length == 0) {
+            return subCommands;
+        } else if (args.length == 1) {
+            return subCommands.stream().filter(t -> t.startsWith(args[0])).toList();
+        } else if (args.length == 2) {
+            return options.stream().filter(t -> t.startsWith(args[1])).toList();
+        } else if (args.length == 3) {
+            if (!subCommands.contains(args[0].toLowerCase()) || !args[1].equalsIgnoreCase("set"))
+                return null;
+            var isPrefix = args[0].equalsIgnoreCase("prefix");
+            if (isPrefix) {
+                var prefix = pluginInstance.chatProvider.getPlayerPrefix((Player) sender);
+                if (prefix.length() == 0)
+                    return null;
+                else
+                    return List.of(prefix.trim().replace("&", "§§").replace("§", "&"));
+            } else /*suffix*/ {
+                var suffix = pluginInstance.chatProvider.getPlayerSuffix((Player) sender);
+                if (suffix.length() == 0)
+                    return null;
+                else
+                    return List.of(suffix.trim().replace("&", "§§").replace("§", "&"));
+            }
+        } else {
+            return null;
+        }
     }
 }
