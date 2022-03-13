@@ -79,7 +79,7 @@ public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
 //                            return true;
 //                        }
 //                    }
-                    pluginInstance.economyProvider.depositPlayer(senderPlayer.getUniqueId(), settings.moneyCost);
+                    pluginInstance.economyProvider.withdrawPlayer(senderPlayer.getUniqueId(), settings.moneyCost);
                     pluginInstance.economyProvider.depositSystemVault(settings.moneyCost);
                     senderPlayer.setLevel(senderPlayer.getLevel() - settings.expCostLvl);
                     if (isPrefix) {
