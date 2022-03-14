@@ -28,6 +28,7 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
     private final Map<String, FixedRedbag> redbagMap = new ConcurrentHashMap<>();
     private final Map<UUID, Pair<FixedRedbag, String>> waitingMap = new HashMap<>();
     private final Pattern formatCodePattern = Pattern.compile("&[0-9A-Fa-fLlMmNnOoRrXxKk]");
+    private final String REDBAG_PERMISSION_NODE = "ukit.redbag";
     private final boolean isDisabled;
 
     public RedbagFunction(SpigotLoader pluginInstance) {
@@ -39,6 +40,10 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
     public boolean invokeCommand(CommandSender commandSender, Command command, String label, String[] args) {
         if (!(commandSender instanceof Player senderPlayer)) {
             commandSender.sendMessage(pluginInstance.language.commonLang.playerOnlyCommand.produce());
+            return true;
+        }
+        if (!commandSender.hasPermission(REDBAG_PERMISSION_NODE)) {
+            senderPlayer.sendMessage(pluginInstance.language.commonLang.permissionDenied.produce());
             return true;
         }
         if (isDisabled) {
@@ -85,9 +90,31 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                     return true;
                 }
                 FixedRedbag redbag;
+                if (quantity > pluginInstance.config.redbagConfig.maximumQuantity || quantity < pluginInstance.config.redbagConfig.minimumQuantity) {
+                    senderPlayer.sendMessage(pluginInstance.language.redbagLang.quantityNotInRange.produce(
+                            Pair.of("minimum", pluginInstance.config.redbagConfig.minimumQuantity),
+                            Pair.of("maximum", pluginInstance.config.redbagConfig.maximumQuantity),
+                            Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
+                    ));
+                    return true;
+                }
                 if (args[1].equalsIgnoreCase("fixed")) {
+                    if (amount < pluginInstance.config.redbagConfig.minimumAmountPerRedbag) {
+                        senderPlayer.sendMessage(pluginInstance.language.redbagLang.amountTooLow.produce(
+                                Pair.of("amount", pluginInstance.config.redbagConfig.minimumAmountPerRedbag),
+                                Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
+                        ));
+                        return true;
+                    }
                     redbag = new FixedRedbag(senderPlayer, amount, quantity, pluginInstance);
                 } else/*lucky*/ {
+                    if (amount < amount / quantity) {
+                        senderPlayer.sendMessage(pluginInstance.language.redbagLang.amountTooLow.produce(
+                                Pair.of("amount", pluginInstance.config.redbagConfig.minimumAmountPerRedbag),
+                                Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
+                        ));
+                        return true;
+                    }
                     redbag = new LuckyRedbag(senderPlayer, amount, quantity, pluginInstance);
                 }
                 String password;
@@ -103,6 +130,10 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                             Pair.of("password", password),
                             Pair.of("maxLength", pluginInstance.config.redbagConfig.maxPasswordLength)
                     ));
+                }
+                if (password.startsWith("/")){
+                    senderPlayer.sendMessage(pluginInstance.language.redbagLang.cantStartsWithSlash.produce());
+                    return true;
                 }
                 if (formatCodePattern.matcher(password).find()) {
                     senderPlayer.sendMessage(pluginInstance.language.redbagLang.cantUseFormatCode.produce());
@@ -139,8 +170,8 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                 var balance = pluginInstance.economyProvider.getPlayerBalance(senderPlayer.getUniqueId());
                 if (record.key().getAmountTotal() > balance) {
                     senderPlayer.sendMessage(pluginInstance.language.redbagLang.cantOffer.produce(
-                            Pair.of("amount",record.key().getAmountTotal()),
-                            Pair.of("currencyUnit",pluginInstance.economyProvider.currencyNamePlural())
+                            Pair.of("amount", record.key().getAmountTotal()),
+                            Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
                     ));
                     return true;
                 }

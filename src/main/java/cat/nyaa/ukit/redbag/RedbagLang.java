@@ -27,6 +27,8 @@ public class RedbagLang {
     public Text previewYesButtonHoverText = Text.of("&#79a15f/ukit redbag confirm");
     public Text previewNoButtonText = Text.of("&7[&#a15f5fNo&7]");
     public Text previewNoButtonHoverText = Text.of("&#a15f5f/ukit redbag cancel");
+    public Text amountTooLow = Text.of("The average amount of your redbag must higher than {amount}{currencyUnit}");
+    public Text quantityNotInRange = Text.of("Your quantity must in range of {minimum}{currencyUnit} to {maximum}{currencyUnit}");
     public Text cantOffer = Text.of("&7Failed to pay for your redbag. Please make sure that you have at least {amount}{currencyUnit}");
     public Text payFailure = Text.of("&7Failed to pay for your redbag due to unexpected error. Please wait for a while and try again");
     public Text redbagCancelFeedback = Text.of("&7Creation cancelled.");
@@ -43,9 +45,10 @@ public class RedbagLang {
     public Text grabButtonHoverText = Text.of("&7Click to Type: &#e38364{password}");
     public Text duplicatePassword = Text.of("&7This password is same to the other redbag exist, please change to the other one or wait for a while");
     public Text cantUseFormatCode = Text.of("&7You may not able to use format code in passwords");
+    public Text cantStartsWithSlash = Text.of("&7You may not able to start your password with \"/\"");
 
     public Text alreadyGrabbed = Text.of("&aYou are already grabbed this redbag!");
-    public Text grabbedBroadcast = Text.of("&7{player} have grabbed {amount}{currencyUnit} from {owner}'s {type}&7!");
+    public Text grabbedFeedback = Text.of("&7{player} have grabbed {amount}{currencyUnit} from your {type}&7!");
     public Text fixedRedbagDone = Text.of("&7{owner}'s {type}&7 has been cleared");
     public Text luckRedbagDone = Text.of("&7{owner}'s {type}&7 has been cleared, {luckiestOne} is the most lucky one who grabbed {amount}{currencyUnit}");
     public Text tooLate = Text.of("&7You are too late to grab this redbag");

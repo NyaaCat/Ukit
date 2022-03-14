@@ -41,6 +41,9 @@ public class LuckyRedbag extends FixedRedbag {
 
     @Override
     public void announceFinished() {
+        if(grabbedMap.isEmpty()){
+            return;
+        }
         Pair<UUID, Double> luckyKingRecord = null;
         for (var k : grabbedMap.keySet()) {
             if (luckyKingRecord == null) {
@@ -50,7 +53,6 @@ public class LuckyRedbag extends FixedRedbag {
             if (luckyKingRecord.value() < grabbedMap.get(k))
                 luckyKingRecord = Pair.of(k, grabbedMap.get(k));
         }
-        assert luckyKingRecord != null;
         Utils.silentBroadcast(pluginInstance.language.redbagLang.luckRedbagDone.produce(
                 Pair.of("owner",owner.getName()),
                 Pair.of("type",getName()),
