@@ -100,7 +100,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                             return true;
                         } else {
                             if (args.length == 1) {
-                                player.spigot().sendMessage(getLockFramePropertyMessage(lookingFrame, player));
+                                player.spigot().sendMessage(getLockFramePropertyMessage(lookingFrame));
                                 return true;
                             } else {
                                 try {
@@ -108,7 +108,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                                         case TRANSPARENT -> lookingFrame.setVisible(!args[2].equalsIgnoreCase("enable"));
                                         case GROWING -> lookingFrame.setGlowing(args[2].equalsIgnoreCase("enable"));
                                     }
-                                    player.spigot().sendMessage(getLockFramePropertyMessage(lookingFrame, player));
+                                    player.spigot().sendMessage(getLockFramePropertyMessage(lookingFrame));
                                     return true;
                                 } catch (IllegalArgumentException e) {
                                     commandSender.sendMessage(pluginInstance.language.lockLang.invalidProperty.produce(
@@ -125,7 +125,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
         }
     }
 
-    private BaseComponent getLockFramePropertyMessage(ItemFrame frame, Player player) {
+    private BaseComponent[] getLockFramePropertyMessage(ItemFrame frame) {
         var transparent = !frame.isVisible();
         var growing = frame.isGlowing();
         var transparentButton = new TextComponent(TextComponent.fromLegacyText(transparent ? pluginInstance.language.commonLang.buttonOff.colored() : pluginInstance.language.commonLang.buttonOn.colored()));

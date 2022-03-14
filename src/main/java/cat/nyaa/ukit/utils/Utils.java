@@ -1,5 +1,8 @@
 package cat.nyaa.ukit.utils;
 
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -20,5 +23,20 @@ public class Utils {
         var trace = player.getWorld().rayTraceEntities(player.getEyeLocation(), player.getLocation().getDirection(), getReachDistance(player), 0, predicate);
         if (trace == null) return null;
         return trace.getHitEntity();
+    }
+    public static void silentBroadcast(String text){
+        Bukkit.getOnlinePlayers().forEach(
+               p-> p.sendMessage(text)
+        );
+    }
+
+    public static void silentBroadcast(BaseComponent baseComponent){
+        silentBroadcast(new BaseComponent[]{baseComponent});
+    }
+
+    public static void silentBroadcast(BaseComponent[] baseComponents){
+        Bukkit.getOnlinePlayers().forEach(
+                p -> p.spigot().sendMessage(baseComponents)
+        );
     }
 }

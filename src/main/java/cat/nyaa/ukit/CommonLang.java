@@ -11,7 +11,8 @@ public class CommonLang {
             "&7    /ukit lock: custom item frame lock",
             "&7    /ukit show: broadcast your item in hand",
             "&7    /ukit signedit: edit the sign you are looking at",
-            "&7    /ukit sit: enable/disable sit function. You could sit on some blocks when you right click them after you enabled sitting function.."
+            "&7    /ukit sit: enable/disable sit function. You could sit on some blocks when you right click them after you enabled sitting function.",
+            "&7    /ukit redbag: send a redbag to all the players online"
     );
     public Text functionDisabled = Text.of("&cThis function is not enabled due to server side configuration.");
     public Text textTrue = Text.of("&atrue");
