@@ -48,7 +48,8 @@ public class RedbagLang {
     public Text cantStartsWithSlash = Text.of("&7You may not able to start your password with \"/\"");
 
     public Text alreadyGrabbed = Text.of("&aYou are already grabbed this redbag!");
-    public Text grabbedFeedback = Text.of("&7{player} have grabbed {amount}{currencyUnit} from your {type}&7!");
+    public Text grabbedFeedbackToOwner = Text.of("&7{player} have grabbed {amount}{currencyUnit} from your {type}&7!");
+    public Text grabbedFeedbackToGrabber = Text.of("&7You have grabbed {amount}{currencyUnit} from {owner}'s {type}&7!");
     public Text fixedRedbagDone = Text.of("&7{owner}'s {type}&7 has been cleared");
     public Text luckRedbagDone = Text.of("&7{owner}'s {type}&7 has been cleared, {luckiestOne} is the most lucky one who grabbed {amount}{currencyUnit}");
     public Text tooLate = Text.of("&7You are too late to grab this redbag");
