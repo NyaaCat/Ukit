@@ -138,7 +138,10 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                 var record = waitingMap.get(senderPlayer.getUniqueId());
                 var balance = pluginInstance.economyProvider.getPlayerBalance(senderPlayer.getUniqueId());
                 if (record.key().getAmountTotal() > balance) {
-                    senderPlayer.sendMessage(pluginInstance.language.redbagLang.cantOffer.produce());
+                    senderPlayer.sendMessage(pluginInstance.language.redbagLang.cantOffer.produce(
+                            Pair.of("amount",record.key().getAmountTotal()),
+                            Pair.of("currencyUnit",pluginInstance.economyProvider.currencyNamePlural())
+                    ));
                     return true;
                 }
                 var success = pluginInstance.economyProvider.withdrawPlayer(senderPlayer.getUniqueId(), record.key().getAmountTotal());
