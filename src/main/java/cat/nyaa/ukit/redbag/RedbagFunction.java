@@ -101,17 +101,15 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                 if (args[1].equalsIgnoreCase("fixed")) {
                     if (amount < pluginInstance.config.redbagConfig.minimumAmountPerRedbag) {
                         senderPlayer.sendMessage(pluginInstance.language.redbagLang.amountTooLow.produce(
-                                Pair.of("amount", pluginInstance.config.redbagConfig.minimumAmountPerRedbag),
-                                Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
+                                Pair.of("amount", pluginInstance.config.redbagConfig.minimumAmountPerRedbag)
                         ));
                         return true;
                     }
                     redbag = new FixedRedbag(senderPlayer, amount, quantity, pluginInstance);
                 } else/*lucky*/ {
-                    if (amount < amount / quantity) {
+                    if (amount / quantity < pluginInstance.config.redbagConfig.minimumAmountPerRedbag) {
                         senderPlayer.sendMessage(pluginInstance.language.redbagLang.amountTooLow.produce(
-                                Pair.of("amount", pluginInstance.config.redbagConfig.minimumAmountPerRedbag),
-                                Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
+                                Pair.of("amount", pluginInstance.config.redbagConfig.minimumAmountPerRedbag)
                         ));
                         return true;
                     }

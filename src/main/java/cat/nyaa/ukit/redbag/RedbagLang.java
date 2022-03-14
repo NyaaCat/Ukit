@@ -7,7 +7,7 @@ public class RedbagLang {
             "&7Usage:",
             "&7    &n/u redbag <options...>",
             "&7    &n/u redbag create fixed <amount> <quantity> [password(optional)]&7: create a fixed number of red-bags, each containing specified money",
-            "&7    &n/u redbag create fixed <amount> <quantity> [password(optional)]&7: create a number of random money red-bags, totally containing specified money"
+            "&7    &n/u redbag create lucky <amount> <quantity> [password(optional)]&7: create a number of random money red-bags, totally containing specified money"
     );
     public Text activeOneExist = Text.of("&7You have an active redbag at present, you can only send another redbag after it expired or being cleared");
     public Text invalidQuantity = Text.of("{input} is not a valid quantity");
@@ -28,7 +28,7 @@ public class RedbagLang {
     public Text previewNoButtonText = Text.of("&7[&#a15f5fNo&7]");
     public Text previewNoButtonHoverText = Text.of("&#a15f5f/ukit redbag cancel");
     public Text amountTooLow = Text.of("The average amount of your redbag must higher than {amount}{currencyUnit}");
-    public Text quantityNotInRange = Text.of("Your quantity must in range of {minimum}{currencyUnit} to {maximum}{currencyUnit}");
+    public Text quantityNotInRange = Text.of("Your quantity must in range of {minimum} to {maximum}");
     public Text cantOffer = Text.of("&7Failed to pay for your redbag. Please make sure that you have at least {amount}{currencyUnit}");
     public Text payFailure = Text.of("&7Failed to pay for your redbag due to unexpected error. Please wait for a while and try again");
     public Text redbagCancelFeedback = Text.of("&7Creation cancelled.");
