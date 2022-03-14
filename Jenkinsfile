@@ -6,7 +6,7 @@ pipeline {
                     jdk "jdk17"
                 }
                 steps {
-                    sh 'mvn clean package'
+                    sh 'mvn -DjenkinsBuildNumber=${BUILD_NUMBER} clean package'
                 }
             }
         }

@@ -65,6 +65,7 @@
     </pluginRepositories>
 
     <build>
+        <finalName>${artifactId}-${version}-b${jenkinsBuildNumber}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
