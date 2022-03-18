@@ -16,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class SpigotLoader extends JavaPlugin implements TabExecutor {
     public static Logger logger = null;
@@ -54,26 +56,35 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
         this.getServer().getPluginCommand("ukit").setExecutor(this);
         this.getServer().getPluginCommand("ukit").setTabCompleter(this);
+    }
 
+    @Override
+    public void onDisable(){
+        getServer().getScheduler().cancelTasks(this);
+        HandlerList.unregisterAll(this);
+        if(redbagFunction !=null) {redbagFunction.refundAll();}
+    }
+
+    public boolean reload() {
+        //reset
+        onDisable();
+
+        //setup chat & economy
+        IGNORE_RESULT(setupEconomy() && setupChat());
+
+        //setup components
         sitFunction = new SitFunction(this);
         showFunction = new ShowFunction(this);
         signEditFunction = new SignEditFunction(this);
         lockFunction = new LockFunction(this);
         chatFunction = new ChatFunction(this);
         redbagFunction = new RedbagFunction(this);
+
+        //event handlers
+        getServer().getPluginManager().registerEvents(sitFunction, this);
         getServer().getPluginManager().registerEvents(redbagFunction,this);
 
-        this.getServer().getPluginManager().registerEvents(sitFunction, this);
-    }
-
-    @Override
-    public void onDisable(){
-        getServer().getScheduler().cancelTasks(this);
-        redbagFunction.refundAll();
-    }
-
-    public boolean reload() {
-        IGNORE_RESULT(setupEconomy() && setupChat());
+        //reload config
         try {
             config = configLoader.loadOrInitialize(configFile, MainConfig.class, MainConfig::new);
             language = configLoader.loadOrInitialize(languageFile, MainLang.class, MainLang::new);
@@ -133,16 +144,8 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     public List<String> onTabComplete(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String alias, @Nonnull String[] args) {
         var subCommandList = Arrays.stream(SubCommands.values()).map((v) -> v.name().toLowerCase()).toList();
         List<String> completeList = null;
-        if (args.length == 0) {
-            return subCommandList;
-        } else if (args.length == 1) {
-            completeList = new ArrayList<>();
-            for (var subCommand : subCommandList) {
-                if (subCommand.startsWith(args[0]) && !subCommand.equalsIgnoreCase(args[0])) {
-                    completeList.add(subCommand);
-                }
-            }
-            return completeList;
+        if (args.length <2) {
+            return subCommandList.stream().filter(t->t.startsWith(args[0].toLowerCase())).toList();
         } else {
             try {
                 var argsTruncated = Arrays.copyOfRange(args, 1, args.length);
