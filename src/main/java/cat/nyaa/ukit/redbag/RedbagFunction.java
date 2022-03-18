@@ -267,4 +267,9 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
         redbagMap.values().forEach(FixedRedbag::disable);
         redbagMap.clear();
     }
+
+    @Override
+    public boolean checkPermission(CommandSender commandSender){
+        return commandSender.hasPermission(REDBAG_PERMISSION_NODE);
+    }
 }

@@ -159,4 +159,9 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
         }
         return null;
     }
+
+    @Override
+    public boolean checkPermission(CommandSender commandSender){
+        return commandSender.hasPermission(SIGNEDIT_PERMISSION_NODE);
+    }
 }

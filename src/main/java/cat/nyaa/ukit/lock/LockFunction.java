@@ -205,4 +205,9 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
     enum LockedFrameProperties {
         TRANSPARENT, GROWING
     }
+
+    @Override
+    public boolean checkPermission(CommandSender commandSender){
+        return commandSender.hasPermission(LOCK_PERMISSION_NORMAL_NODE) || commandSender.hasPermission(LOCK_PERMISSION_PRIVILEGE_NODE);
+    }
 }

@@ -26,12 +26,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class SpigotLoader extends JavaPlugin implements TabExecutor {
     public static Logger logger = null;
     private final SimpleLanguageLoader configLoader = new SimpleLanguageLoader(
             new GsonBuilder().registerTypeAdapter(SitConfig.class, SitConfig.serializer), true);
+    private final String RELOAD_PERMISSION_NODE = "ukit.reload";
     public MainLang language;
     public MainConfig config;
     public File languageFile = new File(getDataFolder(), "language.json");
@@ -59,10 +59,12 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     }
 
     @Override
-    public void onDisable(){
+    public void onDisable() {
         getServer().getScheduler().cancelTasks(this);
         HandlerList.unregisterAll(this);
-        if(redbagFunction !=null) {redbagFunction.refundAll();}
+        if (redbagFunction != null) {
+            redbagFunction.refundAll();
+        }
     }
 
     public boolean reload() {
@@ -82,7 +84,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
         //event handlers
         getServer().getPluginManager().registerEvents(sitFunction, this);
-        getServer().getPluginManager().registerEvents(redbagFunction,this);
+        getServer().getPluginManager().registerEvents(redbagFunction, this);
 
         //reload config
         try {
@@ -111,9 +113,9 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         var argTruncated = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0];
         switch (subCommands) {
             case RELOAD -> {
-                if (!sender.hasPermission("ukit.reload")) {
+                if (!sender.hasPermission(RELOAD_PERMISSION_NODE)) {
                     sender.sendMessage(language.commonLang.permissionDenied.produce());
-                }else{
+                } else {
                     reload();
                     sender.sendMessage(language.commonLang.reloadSuccess.produce());
                 }
@@ -128,7 +130,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
             case CHAT -> invokeCommand(chatFunction, sender, command, label, argTruncated);
 
-            case REDBAG -> invokeCommand(redbagFunction,sender,command,label,argTruncated);
+            case REDBAG -> invokeCommand(redbagFunction, sender, command, label, argTruncated);
 
         }
         return true;
@@ -140,22 +142,36 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         }
     }
 
+    private boolean hasPermission(SubCommands subCommand, CommandSender commandSender) {
+        return switch (subCommand) {
+            case REDBAG -> redbagFunction != null && redbagFunction.checkPermission(commandSender);
+            case SIT -> sitFunction != null && sitFunction.checkPermission(commandSender);
+            case CHAT -> chatFunction != null && chatFunction.checkPermission(commandSender);
+            case LOCK -> lockFunction != null && lockFunction.checkPermission(commandSender);
+            case SHOW -> showFunction != null && showFunction.checkPermission(commandSender);
+            case SIGNEDIT -> signEditFunction != null && signEditFunction.checkPermission(commandSender);
+            case RELOAD -> commandSender.hasPermission(RELOAD_PERMISSION_NODE);
+        };
+    }
+
     @Override
     public List<String> onTabComplete(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String alias, @Nonnull String[] args) {
-        var subCommandList = Arrays.stream(SubCommands.values()).map((v) -> v.name().toLowerCase()).toList();
-        List<String> completeList = null;
-        if (args.length <2) {
-            return subCommandList.stream().filter(t->t.startsWith(args[0].toLowerCase())).toList();
+        var subCommandList = Arrays.stream(SubCommands.values()).filter(t -> hasPermission(t, sender)).map((v) -> v.name().toLowerCase()).toList();
+        List<String> completeList = new ArrayList<>();
+        if (args.length < 2) {
+            return subCommandList.stream().filter(t -> t.startsWith(args[0].toLowerCase())).toList();
         } else {
             try {
                 var argsTruncated = Arrays.copyOfRange(args, 1, args.length);
-                switch (SubCommands.valueOf(args[0].toUpperCase())) {
+                var subCommand = SubCommands.valueOf(args[0].toUpperCase());
+                if (!hasPermission(subCommand, sender)) return completeList;
+                switch (subCommand) {
                     case SHOW -> completeList = showFunction.tabComplete(sender, command, alias, argsTruncated);
                     case SIT -> completeList = sitFunction.tabComplete(sender, command, alias, argsTruncated);
                     case SIGNEDIT -> completeList = signEditFunction.tabComplete(sender, command, alias, argsTruncated);
                     case LOCK -> completeList = lockFunction.tabComplete(sender, command, alias, argsTruncated);
                     case CHAT -> completeList = chatFunction.tabComplete(sender, command, alias, argsTruncated);
-                    case REDBAG -> completeList = redbagFunction.tabComplete(sender,command,alias,argsTruncated);
+                    case REDBAG -> completeList = redbagFunction.tabComplete(sender, command, alias, argsTruncated);
                 }
             } catch (IllegalArgumentException ignore) {
             }

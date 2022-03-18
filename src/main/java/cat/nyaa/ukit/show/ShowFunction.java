@@ -18,6 +18,7 @@ import java.util.List;
 
 public class ShowFunction implements SubCommandExecutor, SubTabCompleter {
     private final SpigotLoader pluginInstance;
+    private final String SHOW_PERMISSION_NODE = "ukit.show";
 
     public ShowFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
@@ -30,7 +31,7 @@ public class ShowFunction implements SubCommandExecutor, SubTabCompleter {
             return true;
         }
         var senderPlayer = (Player) commandSender;
-        if (!senderPlayer.hasPermission("ukit.show")) {
+        if (!senderPlayer.hasPermission(SHOW_PERMISSION_NODE)) {
             senderPlayer.sendMessage(pluginInstance.language.commonLang.permissionDenied.produce());
             return true;
         }
@@ -56,5 +57,10 @@ public class ShowFunction implements SubCommandExecutor, SubTabCompleter {
     @Override
     public List<String> tabComplete(CommandSender sender, Command command, String alias, String[] args) {
         return null;
+    }
+
+    @Override
+    public boolean checkPermission(CommandSender commandSender){
+        return commandSender.hasPermission(SHOW_PERMISSION_NODE);
     }
 }

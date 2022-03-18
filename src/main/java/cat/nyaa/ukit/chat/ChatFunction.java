@@ -148,4 +148,9 @@ public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
             return null;
         }
     }
+
+    @Override
+    public boolean checkPermission(CommandSender commandSender){
+        return commandSender.hasPermission(CHAT_PERMISSION_NODE);
+    }
 }
