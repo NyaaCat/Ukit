@@ -63,8 +63,8 @@ public class LuckyRedbag extends FixedRedbag {
     }
 
     @Override
-    public double getRemaining() {
-        var sum = 0;
+    public double getRemainingMoney() {
+        var sum = 0.0D;
         for (int i = grabbedMap.size(); i < quantity; i++) {
             sum += amountTable.get(i);
         }

@@ -90,8 +90,8 @@ public class FixedRedbag {
         return owner;
     }
 
-    public double getRemaining() {
-        return quantity - grabbedMap.size();
+    public double getRemainingMoney() {
+        return (quantity - grabbedMap.size()) * amount;
     }
 
     public boolean isFinished() {
@@ -111,7 +111,7 @@ public class FixedRedbag {
         }
         disabled = true;
         announceFinished();
-        var refund = getRemaining();
+        var refund = getRemainingMoney();
         if (refund != 0) {
             var success = pluginInstance.economyProvider.depositPlayer(owner.getUniqueId(), refund);
             if (success) {
