@@ -27,7 +27,7 @@ public class LockLang {
     public Text lockFrameProperties = Text.of(
             "&7Properties:",
             "&7    Transparent&7: {transparent} {toggleButtonTransparent}",
-            "&7    Growing&7: {growing} {toggleButtonDisplayName}"
+            "&7    Glowing&7: {glowing} {toggleButtonDisplayName}"
     );
 
 }

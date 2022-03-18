@@ -15,10 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Arrays;
@@ -30,6 +27,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
     private final String LOCK_PERMISSION_NORMAL_NODE = "ukit.lock";
     private final String LOCK_PERMISSION_PRIVILEGE_NODE = "ukit.lock.admin";
     private final NamespacedKey LOCK_METADATA_KEY;
+    private final UUID ZERO_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
     private final List<String> subCommands = List.of("info", "setup", "remove", "property");
 
     public LockFunction(SpigotLoader pluginInstance) {
@@ -53,11 +51,10 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
             if (lookingEntity == null) {
                 commandSender.sendMessage(pluginInstance.language.lockLang.noEntityFound.produce());
                 return true;
-            } else if (lookingEntity.getType() != EntityType.ITEM_FRAME) {
+            } else if (!(lookingEntity instanceof ItemFrame lookingFrame)) {
                 commandSender.sendMessage(pluginInstance.language.lockLang.notItemFrame.produce());
                 return true;
             } else {
-                var lookingFrame = (ItemFrame) lookingEntity;
                 switch (args[0]) {
                     case "setup":
                         if (isLockedFrame(lookingFrame)) {
@@ -106,7 +103,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                                 try {
                                     switch (LockedFrameProperties.valueOf(args[1].toUpperCase())) {
                                         case TRANSPARENT -> lookingFrame.setVisible(!args[2].equalsIgnoreCase("enable"));
-                                        case GROWING -> lookingFrame.setGlowing(args[2].equalsIgnoreCase("enable"));
+                                        case GLOWING -> lookingFrame.setGlowing(args[2].equalsIgnoreCase("enable"));
                                     }
                                     player.spigot().sendMessage(getLockFramePropertyMessage(lookingFrame));
                                     return true;
@@ -127,21 +124,22 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
 
     private BaseComponent[] getLockFramePropertyMessage(ItemFrame frame) {
         var transparent = !frame.isVisible();
-        var growing = frame.isGlowing();
+        var glowing = frame.isGlowing();
         var transparentButton = new TextComponent(TextComponent.fromLegacyText(transparent ? pluginInstance.language.commonLang.buttonOff.colored() : pluginInstance.language.commonLang.buttonOn.colored()));
         var transparentCmd = "/ukit lock property transparent " + (transparent ? "disable" : "enable");
-        var growingCmd = "/ukit lock property growing " + (growing ? "disable" : "enable");
+        var glowingCmd = "/ukit lock property glowing " + (glowing ? "disable" : "enable");
         transparentButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(transparentCmd)));
         transparentButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, transparentCmd));
-        var growingButton = new TextComponent(TextComponent.fromLegacyText(growing ? pluginInstance.language.commonLang.buttonOff.colored() : pluginInstance.language.commonLang.buttonOn.colored()));
-        growingButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(growingCmd)));
-        growingButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, growingCmd));
+        var glowingButton = new TextComponent(TextComponent.fromLegacyText(glowing ? pluginInstance.language.commonLang.buttonOff.colored() : pluginInstance.language.commonLang.buttonOn.colored()));
+        glowingButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(glowingCmd)));
+        glowingButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, glowingCmd));
 
         return pluginInstance.language.lockLang.lockFrameProperties.produceWithBaseComponent(
                 Pair.of("transparent", transparent ? pluginInstance.language.commonLang.textTrue : pluginInstance.language.commonLang.textFalse),
-                Pair.of("growing", growing ? pluginInstance.language.commonLang.textTrue : pluginInstance.language.commonLang.textFalse),
+                Pair.of("growing" /*for typo in previous version*/, glowing ? pluginInstance.language.commonLang.textTrue : pluginInstance.language.commonLang.textFalse),
+                Pair.of("glowing", glowing ? pluginInstance.language.commonLang.textTrue : pluginInstance.language.commonLang.textFalse),
                 Pair.of("toggleButtonTransparent", transparentButton),
-                Pair.of("toggleButtonDisplayName", growingButton)
+                Pair.of("toggleButtonDisplayName", glowingButton)
         );
 
     }
@@ -168,11 +166,11 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
     }
 
     private UUID getLockingOwner(ItemFrame itemFrame) {
-        try {
-            return UUID.fromString(itemFrame.getPersistentDataContainer().get(LOCK_METADATA_KEY, PersistentDataType.STRING));
-        } catch (NullPointerException | IllegalArgumentException i) {
-            return UUID.fromString("00000000-0000-0000-0000-000000000000");
-        }
+        var uuidString = itemFrame.getPersistentDataContainer().get(LOCK_METADATA_KEY, PersistentDataType.STRING);
+        if(uuidString!=null)
+            return UUID.fromString(uuidString);
+        else
+            return ZERO_UUID;
     }
 
     @Override
@@ -203,7 +201,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
     }
 
     enum LockedFrameProperties {
-        TRANSPARENT, GROWING
+        TRANSPARENT, GLOWING
     }
 
     @Override
