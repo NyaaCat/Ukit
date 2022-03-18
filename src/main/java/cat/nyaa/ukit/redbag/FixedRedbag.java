@@ -37,7 +37,7 @@ public class FixedRedbag {
             var success = actGrub(player);
             if (success.key()) {
                 player.sendMessage(
-                        pluginInstance.language.redbagLang.grabbedFeedbackToOwner.produce(
+                        pluginInstance.language.redbagLang.grabbedFeedbackToGrabber.produce(
                                 Pair.of("owner", owner.getName()),
                                 Pair.of("amount", success.value()),
                                 Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural()),
