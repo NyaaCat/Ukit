@@ -130,6 +130,7 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                             Pair.of("password", password),
                             Pair.of("maxLength", pluginInstance.config.redbagConfig.maxPasswordLength)
                     ));
+                    return true;
                 }
                 if (password.startsWith("/")){
                     senderPlayer.sendMessage(pluginInstance.language.redbagLang.cantStartsWithSlash.produce());
