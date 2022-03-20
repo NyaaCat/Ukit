@@ -19,13 +19,12 @@ public class ItemFunction implements SubCommandExecutor, SubTabCompleter {
     private final String ITEM_RENAME_PERMISSION_NODE = "ukit.item.rename";
     private final boolean enabled;
     private final List<String> subCommands = List.of("rename");
+    private final SpigotLoader pluginInstance;
 
     public ItemFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
         enabled = pluginInstance.economyProvider != null;
     }
-
-    private final SpigotLoader pluginInstance;
 
     @Override
     public boolean invokeCommand(CommandSender commandSender, Command command, String label, String[] args) {
@@ -47,15 +46,15 @@ public class ItemFunction implements SubCommandExecutor, SubTabCompleter {
         if (args.length < 1) {
             return false;
         }
-        if(!subCommands.contains(args[0].toLowerCase())){
+        if (!subCommands.contains(args[0].toLowerCase())) {
             return false;
         }
         if (args[0].equalsIgnoreCase("rename")) {
-            var config = pluginInstance.config.itemConfig;
+            var config = pluginInstance.config.itemConfig.renameConfig;
             var displayName = ColorConverter.translateToLegacyColorText(String.join(" ", Arrays.copyOfRange(args, 1, args.length)), '&');
             var wordCount = TextUtils.countWord(displayName, '§');
-            if (wordCount > config.maxLength) {
-                senderPlayer.sendMessage(pluginInstance.language.itemLang.nameTooLong.produce(Pair.of("max", config.maxLength)));
+            if (wordCount > config.maxNameLength) {
+                senderPlayer.sendMessage(pluginInstance.language.itemLang.nameTooLong.produce(Pair.of("max", config.maxNameLength)));
                 return true;
             }
             var isOffhand = false;
@@ -68,7 +67,7 @@ public class ItemFunction implements SubCommandExecutor, SubTabCompleter {
                 senderPlayer.sendMessage(pluginInstance.language.itemLang.noItemInHand.produce());
                 return true;
             }
-            var costTotal = config.multiplyAmount ? config.costMoney * itemInHand.getAmount() : config.costMoney;
+            var costTotal = config.multiplyCostWithAmount ? config.costMoney * itemInHand.getAmount() : config.costMoney;
             if (!pluginInstance.economyProvider.withdrawPlayer(senderPlayer.getUniqueId(), costTotal)) {
                 senderPlayer.sendMessage(pluginInstance.language.itemLang.cantOffer.produce(
                         Pair.of("amount", costTotal),
@@ -117,7 +116,7 @@ public class ItemFunction implements SubCommandExecutor, SubTabCompleter {
         if (item.getType().isAir())
             item = senderPlayer.getInventory().getItemInOffHand();
         if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
-            return item.getItemMeta().getDisplayName().replace("§","&");
+            return item.getItemMeta().getDisplayName().replace("§", "&");
         } else {
             return defaultText;
         }
