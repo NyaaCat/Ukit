@@ -31,4 +31,13 @@ public class Vector3D {
         array[2] = Double.doubleToLongBits(z);
         return array;
     }
+
+    @Override
+    public String toString() {
+        return "Vector3D{" +
+                "x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                '}';
+    }
 }

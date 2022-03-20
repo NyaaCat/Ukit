@@ -2,6 +2,7 @@ package cat.nyaa.ukit;
 
 import cat.nyaa.ecore.EconomyCore;
 import cat.nyaa.ukit.chat.ChatFunction;
+import cat.nyaa.ukit.expbottle.ExpBottleFunction;
 import cat.nyaa.ukit.item.ItemFunction;
 import cat.nyaa.ukit.lock.LockFunction;
 import cat.nyaa.ukit.redbag.RedbagFunction;
@@ -46,6 +47,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     private ChatFunction chatFunction;
     private RedbagFunction redbagFunction;
     private ItemFunction itemFunction;
+    private ExpBottleFunction expBottleFunction;
 
     @Override
     public void onEnable() {
@@ -84,10 +86,12 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         chatFunction = new ChatFunction(this);
         redbagFunction = new RedbagFunction(this);
         itemFunction = new ItemFunction(this);
+        expBottleFunction = new ExpBottleFunction(this);
 
         //event handlers
         getServer().getPluginManager().registerEvents(sitFunction, this);
         getServer().getPluginManager().registerEvents(redbagFunction, this);
+        getServer().getPluginManager().registerEvents(expBottleFunction, this);
 
         //reload config
         try {
@@ -137,6 +141,8 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
             case ITEM -> invokeCommand(itemFunction, sender, command, label, argTruncated);
 
+            case EXPBOTTLE -> invokeCommand(expBottleFunction, sender, command, label, argTruncated);
+
         }
         return true;
     }
@@ -156,6 +162,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
             case SHOW -> showFunction != null && showFunction.checkPermission(commandSender);
             case SIGNEDIT -> signEditFunction != null && signEditFunction.checkPermission(commandSender);
             case ITEM -> itemFunction != null && itemFunction.checkPermission(commandSender);
+            case EXPBOTTLE -> expBottleFunction != null && expBottleFunction.checkPermission(commandSender);
             case RELOAD -> commandSender.hasPermission(RELOAD_PERMISSION_NODE);
         };
     }
@@ -179,6 +186,8 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
                     case CHAT -> completeList = chatFunction.tabComplete(sender, command, alias, argsTruncated);
                     case REDBAG -> completeList = redbagFunction.tabComplete(sender, command, alias, argsTruncated);
                     case ITEM -> completeList = itemFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case EXPBOTTLE -> completeList = expBottleFunction.tabComplete(sender,command,alias,argsTruncated);
+                    case RELOAD -> {}
                 }
             } catch (IllegalArgumentException ignore) {
             }
@@ -213,6 +222,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         LOCK,
         CHAT,
         REDBAG,
-        ITEM
+        ITEM,
+        EXPBOTTLE
     }
 }

@@ -1,6 +1,7 @@
 package cat.nyaa.ukit;
 
 import cat.nyaa.ukit.chat.ChatLang;
+import cat.nyaa.ukit.expbottle.ExpBottleLang;
 import cat.nyaa.ukit.item.ItemLang;
 import cat.nyaa.ukit.lock.LockLang;
 import cat.nyaa.ukit.redbag.RedbagLang;
@@ -17,4 +18,5 @@ public class MainLang {
     public ChatLang chatLang = new ChatLang();
     public RedbagLang redbagLang = new RedbagLang();
     public ItemLang itemLang = new ItemLang();
+    public ExpBottleLang expBottleLang = new ExpBottleLang();
 }
