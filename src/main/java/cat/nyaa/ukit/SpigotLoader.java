@@ -2,7 +2,6 @@ package cat.nyaa.ukit;
 
 import cat.nyaa.ecore.EconomyCore;
 import cat.nyaa.ukit.chat.ChatFunction;
-import cat.nyaa.ukit.expbottle.ExpBottleFunction;
 import cat.nyaa.ukit.item.ItemFunction;
 import cat.nyaa.ukit.lock.LockFunction;
 import cat.nyaa.ukit.redbag.RedbagFunction;
@@ -11,6 +10,7 @@ import cat.nyaa.ukit.signedit.SignEditFunction;
 import cat.nyaa.ukit.sit.SitConfig;
 import cat.nyaa.ukit.sit.SitFunction;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
+import cat.nyaa.ukit.xpstore.XpStoreFunction;
 import com.google.gson.GsonBuilder;
 import land.melon.lab.simplelanguageloader.SimpleLanguageLoader;
 import net.milkbowl.vault.chat.Chat;
@@ -47,7 +47,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     private ChatFunction chatFunction;
     private RedbagFunction redbagFunction;
     private ItemFunction itemFunction;
-    private ExpBottleFunction expBottleFunction;
+    private XpStoreFunction xpStoreFunction;
 
     @Override
     public void onEnable() {
@@ -86,12 +86,12 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         chatFunction = new ChatFunction(this);
         redbagFunction = new RedbagFunction(this);
         itemFunction = new ItemFunction(this);
-        expBottleFunction = new ExpBottleFunction(this);
+        xpStoreFunction = new XpStoreFunction(this);
 
         //event handlers
         getServer().getPluginManager().registerEvents(sitFunction, this);
         getServer().getPluginManager().registerEvents(redbagFunction, this);
-        getServer().getPluginManager().registerEvents(expBottleFunction, this);
+        getServer().getPluginManager().registerEvents(xpStoreFunction, this);
 
         //reload config
         try {
@@ -141,7 +141,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
             case ITEM -> invokeCommand(itemFunction, sender, command, label, argTruncated);
 
-            case EXPBOTTLE -> invokeCommand(expBottleFunction, sender, command, label, argTruncated);
+            case XPSTORE -> invokeCommand(xpStoreFunction, sender, command, label, argTruncated);
 
         }
         return true;
@@ -162,7 +162,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
             case SHOW -> showFunction != null && showFunction.checkPermission(commandSender);
             case SIGNEDIT -> signEditFunction != null && signEditFunction.checkPermission(commandSender);
             case ITEM -> itemFunction != null && itemFunction.checkPermission(commandSender);
-            case EXPBOTTLE -> expBottleFunction != null && expBottleFunction.checkPermission(commandSender);
+            case XPSTORE -> xpStoreFunction != null && xpStoreFunction.checkPermission(commandSender);
             case RELOAD -> commandSender.hasPermission(RELOAD_PERMISSION_NODE);
         };
     }
@@ -186,8 +186,9 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
                     case CHAT -> completeList = chatFunction.tabComplete(sender, command, alias, argsTruncated);
                     case REDBAG -> completeList = redbagFunction.tabComplete(sender, command, alias, argsTruncated);
                     case ITEM -> completeList = itemFunction.tabComplete(sender, command, alias, argsTruncated);
-                    case EXPBOTTLE -> completeList = expBottleFunction.tabComplete(sender,command,alias,argsTruncated);
-                    case RELOAD -> {}
+                    case XPSTORE -> completeList = xpStoreFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case RELOAD -> {
+                    }
                 }
             } catch (IllegalArgumentException ignore) {
             }
@@ -223,6 +224,6 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         CHAT,
         REDBAG,
         ITEM,
-        EXPBOTTLE
+        XPSTORE
     }
 }

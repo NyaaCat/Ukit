@@ -1,4 +1,4 @@
-package cat.nyaa.ukit.expbottle;
+package cat.nyaa.ukit.xpstore;
 
 import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.ExperienceUtils;
@@ -26,15 +26,15 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 
-public class ExpBottleFunction implements SubCommandExecutor, SubTabCompleter, Listener {
+public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Listener {
     private final SpigotLoader pluginInstance;
     private final NamespacedKey EXPAmountKey;
     private final NamespacedKey LoreLineIndexKey;
-    private final String EXPBOTTLE_PERMISSION_NODE = "ukit.expbottle";
+    private final String EXPBOTTLE_PERMISSION_NODE = "ukit.xpstore";
     private final Map<UUID, Queue<Integer>> playerExpBottleMap = new HashMap<>();
-    private final List<String> subCommands = List.of("add", "extract");
+    private final List<String> subCommands = List.of("store", "extract");
 
-    public ExpBottleFunction(SpigotLoader pluginInstance) {
+    public XpStoreFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
         EXPAmountKey = new NamespacedKey(pluginInstance, "EXP_AMOUNT");
         LoreLineIndexKey = new NamespacedKey(pluginInstance, "LORE_LINE");
@@ -42,8 +42,8 @@ public class ExpBottleFunction implements SubCommandExecutor, SubTabCompleter, L
 
     @Override
     public boolean invokeCommand(CommandSender commandSender, Command command, String label, String[] args) {
-        //ukit expbottle add <amount>
-        //ukit expbottle takeexp <amount>
+        //ukit xpstore store <amount>
+        //ukit xpstore takeexp <amount>
         if (!(commandSender instanceof Player senderPlayer)) {
             commandSender.sendMessage(pluginInstance.language.commonLang.playerOnlyCommand.produce());
             return true;
@@ -57,13 +57,13 @@ public class ExpBottleFunction implements SubCommandExecutor, SubTabCompleter, L
         }
         var itemInHandPair = Utils.getItemInHand(senderPlayer);
         if (itemInHandPair == null) {
-            senderPlayer.sendMessage(pluginInstance.language.expBottleLang.noItemInHand.produce());
+            senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.noItemInHand.produce());
             return true;
         } else if (itemInHandPair.value().getType() != Material.EXPERIENCE_BOTTLE) {
-            senderPlayer.sendMessage(pluginInstance.language.expBottleLang.notExpBottle.produce());
+            senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notExpBottle.produce());
             return true;
         }
-        var config = pluginInstance.config.expBottleConfig;
+        var config = pluginInstance.config.xpStoreConfig;
         var itemSlot = itemInHandPair.key();
         var itemInHand = itemInHandPair.value();
         var amountItem = itemInHand.getAmount();
@@ -73,13 +73,13 @@ public class ExpBottleFunction implements SubCommandExecutor, SubTabCompleter, L
             if (amountInput < 0 || amountInput > config.maxAmount)
                 throw new IllegalArgumentException();
         } catch (IllegalArgumentException e) {
-            senderPlayer.sendMessage(pluginInstance.language.expBottleLang.notValidAmount.produce(Pair.of("input", args[1])));
+            senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notValidAmount.produce(Pair.of("input", args[1])));
             return true;
         }
-        if (args[0].equalsIgnoreCase("add")) {
+        if (args[0].equalsIgnoreCase("store")) {
             var expTotal = amountItem * amountInput;
-            if (senderPlayer.getTotalExperience() < expTotal) {
-                senderPlayer.sendMessage(pluginInstance.language.expBottleLang.notEnoughExp.produce(
+            if (ExperienceUtils.getExpPoints(senderPlayer) < expTotal) {
+                senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notEnoughExp.produce(
                         Pair.of("expTotal", expTotal),
                         Pair.of("expPerBottle", amountInput),
                         Pair.of("amount", amountItem)
@@ -89,7 +89,7 @@ public class ExpBottleFunction implements SubCommandExecutor, SubTabCompleter, L
             var itemSaved = addExpToItemStack(itemInHand, amountInput);
             Utils.setItemInHand(senderPlayer, Pair.of(itemSlot, itemSaved));
             ExperienceUtils.subtractExpPoints(senderPlayer, expTotal);
-            senderPlayer.sendMessage(pluginInstance.language.expBottleLang.expSaved.produce(
+            senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.expSaved.produce(
                     Pair.of("amount", expTotal)
             ));
         } else if (args[0].equalsIgnoreCase("extract")) {
@@ -97,7 +97,7 @@ public class ExpBottleFunction implements SubCommandExecutor, SubTabCompleter, L
             var amountAverage = expTotal / amountItem;
             var amountContained = getExpContained(itemInHand);
             if (amountContained < amountAverage) {
-                senderPlayer.sendMessage(pluginInstance.language.expBottleLang.notEnoughExpInBottle.produce(
+                senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notEnoughExpInBottle.produce(
                         Pair.of("amount", amountAverage)
                 ));
                 return true;
@@ -105,7 +105,7 @@ public class ExpBottleFunction implements SubCommandExecutor, SubTabCompleter, L
             var itemSaved = addExpToItemStack(itemInHand, -amountAverage);
             Utils.setItemInHand(senderPlayer, Pair.of(itemSlot, itemSaved));
             ExperienceUtils.addPlayerExperience(senderPlayer, expTotal);
-            senderPlayer.sendMessage(pluginInstance.language.expBottleLang.expTook.produce(
+            senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.expTook.produce(
                     Pair.of("amount", expTotal)
             ));
         }
@@ -121,7 +121,7 @@ public class ExpBottleFunction implements SubCommandExecutor, SubTabCompleter, L
 
     @Override
     public String getHelp() {
-        return pluginInstance.language.expBottleLang.help.produce();
+        return pluginInstance.language.xpStoreLang.help.produce();
     }
 
     @Override
@@ -194,7 +194,7 @@ public class ExpBottleFunction implements SubCommandExecutor, SubTabCompleter, L
         var loreLine = itemMeta.getPersistentDataContainer().get(LoreLineIndexKey, PersistentDataType.INTEGER);
         var amount = itemMeta.getPersistentDataContainer().get(EXPAmountKey, PersistentDataType.INTEGER);
         var lore = itemMeta.getLore();
-        var loreText = pluginInstance.language.expBottleLang.loreTextPattern.produce(Pair.of("amount", amount));
+        var loreText = pluginInstance.language.xpStoreLang.loreTextPattern.produce(Pair.of("amount", amount));
         if (lore == null) {
             lore = new ArrayList<>();
             lore.add(loreText);
