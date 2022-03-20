@@ -4,6 +4,7 @@ import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
+import land.melon.lab.simplelanguageloader.nms.ItemUtils;
 import land.melon.lab.simplelanguageloader.nms.LocaleUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -15,7 +16,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Arrays;
@@ -80,9 +83,11 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                         if (!isLockedFrame(lookingFrame)) {
                             commandSender.sendMessage(pluginInstance.language.lockLang.notLockFrame.produce());
                         } else {
-                            commandSender.sendMessage(pluginInstance.language.lockLang.lockFrameInfo.produce(
-                                    Pair.of("player", Bukkit.getOfflinePlayer(getLockingOwner(lookingFrame)).getName()),
-                                    Pair.of("item", LocaleUtils.getTranslatableItemComponent(lookingFrame.getItem()))
+                            var itemComponent = LocaleUtils.getTranslatableItemComponent(lookingFrame.getItem());
+                            itemComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new BaseComponent[]{new TextComponent(ItemUtils.itemStackToJson(lookingFrame.getItem()))}));
+                            commandSender.spigot().sendMessage(pluginInstance.language.lockLang.lockFrameInfo.produceWithBaseComponent(
+                                    Pair.of("owner", Bukkit.getOfflinePlayer(getLockingOwner(lookingFrame)).getName()),
+                                    Pair.of("item", itemComponent)
                             ));
                         }
                         return true;
@@ -167,7 +172,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
 
     private UUID getLockingOwner(ItemFrame itemFrame) {
         var uuidString = itemFrame.getPersistentDataContainer().get(LOCK_METADATA_KEY, PersistentDataType.STRING);
-        if(uuidString!=null)
+        if (uuidString != null)
             return UUID.fromString(uuidString);
         else
             return ZERO_UUID;
@@ -205,7 +210,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
     }
 
     @Override
-    public boolean checkPermission(CommandSender commandSender){
+    public boolean checkPermission(CommandSender commandSender) {
         return commandSender.hasPermission(LOCK_PERMISSION_NORMAL_NODE) || commandSender.hasPermission(LOCK_PERMISSION_PRIVILEGE_NODE);
     }
 }

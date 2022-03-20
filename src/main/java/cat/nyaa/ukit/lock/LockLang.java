@@ -21,8 +21,8 @@ public class LockLang {
     public Text invalidProperty = Text.of("&c{property} is not a valid property.");
     public Text lockFrameInfo = Text.of(
             "&7Lock Frame Info:",
-            "&7    Owner: &6{owner}",
-            "&7    Item: &6{item}"
+            "&7    Owner: {owner}",
+            "&7    Item: {item}"
     );
     public Text lockFrameProperties = Text.of(
             "&7Properties:",
