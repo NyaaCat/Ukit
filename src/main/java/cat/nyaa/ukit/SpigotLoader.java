@@ -141,7 +141,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
             case ITEM -> invokeCommand(itemFunction, sender, command, label, argTruncated);
 
-            case XPSTORE -> invokeCommand(xpStoreFunction, sender, command, label, argTruncated);
+            case XP -> invokeCommand(xpStoreFunction, sender, command, label, argTruncated);
 
         }
         return true;
@@ -162,7 +162,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
             case SHOW -> showFunction != null && showFunction.checkPermission(commandSender);
             case SIGNEDIT -> signEditFunction != null && signEditFunction.checkPermission(commandSender);
             case ITEM -> itemFunction != null && itemFunction.checkPermission(commandSender);
-            case XPSTORE -> xpStoreFunction != null && xpStoreFunction.checkPermission(commandSender);
+            case XP -> xpStoreFunction != null && xpStoreFunction.checkPermission(commandSender);
             case RELOAD -> commandSender.hasPermission(RELOAD_PERMISSION_NODE);
         };
     }
@@ -186,7 +186,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
                     case CHAT -> completeList = chatFunction.tabComplete(sender, command, alias, argsTruncated);
                     case REDBAG -> completeList = redbagFunction.tabComplete(sender, command, alias, argsTruncated);
                     case ITEM -> completeList = itemFunction.tabComplete(sender, command, alias, argsTruncated);
-                    case XPSTORE -> completeList = xpStoreFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case XP -> completeList = xpStoreFunction.tabComplete(sender, command, alias, argsTruncated);
                     case RELOAD -> {
                     }
                 }
@@ -224,6 +224,6 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         CHAT,
         REDBAG,
         ITEM,
-        XPSTORE
+        XP
     }
 }

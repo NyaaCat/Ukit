@@ -32,7 +32,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
     private final NamespacedKey LoreLineIndexKey;
     private final String EXPBOTTLE_PERMISSION_NODE = "ukit.xpstore";
     private final Map<UUID, Queue<Integer>> playerExpBottleMap = new HashMap<>();
-    private final List<String> subCommands = List.of("store", "extract");
+    private final List<String> subCommands = List.of("store", "take");
 
     public XpStoreFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
@@ -92,7 +92,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
             senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.expSaved.produce(
                     Pair.of("amount", expTotal)
             ));
-        } else if (args[0].equalsIgnoreCase("extract")) {
+        } else if (args[0].equalsIgnoreCase("take")) {
             var expTotal = getMinimumDivisible(amountInput, amountItem);
             var amountAverage = expTotal / amountItem;
             var amountContained = getExpContained(itemInHand);
