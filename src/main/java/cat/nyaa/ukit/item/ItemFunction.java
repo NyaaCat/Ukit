@@ -3,6 +3,7 @@ package cat.nyaa.ukit.item;
 import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
+import land.melon.lab.simplelanguageloader.nms.ItemUtils;
 import land.melon.lab.simplelanguageloader.utils.ColorConverter;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import land.melon.lab.simplelanguageloader.utils.TextUtils;
@@ -52,7 +53,8 @@ public class ItemFunction implements SubCommandExecutor, SubTabCompleter {
         if (args[0].equalsIgnoreCase("rename")) {
             var config = pluginInstance.config.itemConfig;
             var displayName = ColorConverter.translateToLegacyColorText(String.join(" ", Arrays.copyOfRange(args, 1, args.length)), '&');
-            if (TextUtils.countWord(displayName, '§') > config.maxLength) {
+            var wordCount = TextUtils.countWord(displayName, '§');
+            if (wordCount > config.maxLength) {
                 senderPlayer.sendMessage(pluginInstance.language.itemLang.nameTooLong.produce(Pair.of("max", config.maxLength)));
                 return true;
             }
@@ -83,8 +85,8 @@ public class ItemFunction implements SubCommandExecutor, SubTabCompleter {
             } else {
                 senderPlayer.getInventory().setItemInMainHand(itemInHand);
             }
-            senderPlayer.sendMessage(pluginInstance.language.itemLang.success.produce(
-                    Pair.of("name", displayName),
+            senderPlayer.spigot().sendMessage(pluginInstance.language.itemLang.success.produceWithBaseComponent(
+                    Pair.of("name", ItemUtils.itemTextWithHover(itemInHand)),
                     Pair.of("amount", costTotal),
                     Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
             ));
@@ -114,7 +116,7 @@ public class ItemFunction implements SubCommandExecutor, SubTabCompleter {
         var item = senderPlayer.getInventory().getItemInMainHand();
         if (item.getType().isAir())
             item = senderPlayer.getInventory().getItemInOffHand();
-        if (item.getItemMeta().hasDisplayName()) {
+        if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
             return item.getItemMeta().getDisplayName().replace("§","&");
         } else {
             return defaultText;
