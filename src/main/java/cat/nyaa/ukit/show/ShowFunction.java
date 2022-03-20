@@ -36,13 +36,11 @@ public class ShowFunction implements SubCommandExecutor, SubTabCompleter {
             return true;
         }
         var itemInHand = senderPlayer.getInventory().getItemInMainHand();
-        var itemComponent = LocaleUtils.getTranslatableItemComponent(itemInHand);
-        itemComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new BaseComponent[]{new TextComponent(ItemUtils.itemStackToJson(itemInHand))}));
         // don't know how to use new Content API
         pluginInstance.getServer().spigot().broadcast(
                 (itemInHand.getAmount() == 1 ? pluginInstance.language.showLang.showMessageSingle : pluginInstance.language.showLang.showMessageMultiple).produceWithBaseComponent(
                         Pair.of("player", senderPlayer.getName()),
-                        Pair.of("item", itemComponent),
+                        Pair.of("item", ItemUtils.itemTextWithHover(itemInHand)),
                         Pair.of("amount", itemInHand.getAmount())
                 )
         );
