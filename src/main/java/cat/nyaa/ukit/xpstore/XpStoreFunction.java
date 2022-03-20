@@ -191,25 +191,30 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
     }
 
     private ItemMeta updateLore(ItemMeta itemMeta) {
-        var loreLine = itemMeta.getPersistentDataContainer().get(LoreLineIndexKey, PersistentDataType.INTEGER);
+        var loreIndex = itemMeta.getPersistentDataContainer().get(LoreLineIndexKey, PersistentDataType.INTEGER);
         var amount = itemMeta.getPersistentDataContainer().get(EXPAmountKey, PersistentDataType.INTEGER);
-        var lore = itemMeta.getLore();
+        var loreList = itemMeta.getLore();
+        if (loreList == null)
+            loreList = new ArrayList<>();
         var loreText = pluginInstance.language.xpStoreLang.loreTextPattern.produce(Pair.of("amount", amount));
-        if (lore == null) {
-            lore = new ArrayList<>();
-            lore.add(loreText);
-            loreLine = 0;
+
+        if (loreIndex == null) {
+            //first time startup
+            loreList.add(loreText);
+            loreIndex = loreList.size() - 1;
         } else {
-            if (loreLine > lore.size()) {
-                loreLine = lore.size();
-                itemMeta.getPersistentDataContainer().set(LoreLineIndexKey, PersistentDataType.INTEGER, loreLine);
-                lore.add(loreText);
+            //already an exp bottle
+            if (loreIndex > loreList.size() - 1) {
+                //index out of bound
+                loreList.add(loreText);
+                loreIndex = loreList.size() - 1;
             } else {
-                lore.set(loreLine, loreText);
+                //index in bound
+                loreList.set(loreIndex, loreText);
             }
         }
-        itemMeta.getPersistentDataContainer().set(LoreLineIndexKey, PersistentDataType.INTEGER, loreLine);
-        itemMeta.setLore(lore);
+        itemMeta.getPersistentDataContainer().set(LoreLineIndexKey, PersistentDataType.INTEGER, loreIndex);
+        itemMeta.setLore(loreList);
         return itemMeta;
     }
 
