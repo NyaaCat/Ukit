@@ -4,6 +4,7 @@ import land.melon.lab.simplelanguageloader.utils.Pair;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -51,6 +52,18 @@ public class Utils {
             isOffhand = true;
         }
         if (item.getType().isAir())
+            return null;
+        else return Pair.of(isOffhand ? EquipmentSlot.OFF_HAND : EquipmentSlot.HAND, item);
+    }
+
+    public static Pair<EquipmentSlot, ItemStack> getItemInHand(Player player, Material type) {
+        var item = player.getInventory().getItemInMainHand();
+        var isOffhand = false;
+        if (item.getType() != type) {
+            item = player.getInventory().getItemInOffHand();
+            isOffhand = true;
+        }
+        if (item.getType() != type)
             return null;
         else return Pair.of(isOffhand ? EquipmentSlot.OFF_HAND : EquipmentSlot.HAND, item);
     }
