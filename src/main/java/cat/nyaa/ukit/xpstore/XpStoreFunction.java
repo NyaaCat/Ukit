@@ -15,6 +15,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.ExpBottleEvent;
@@ -37,7 +38,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
     public XpStoreFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
         EXPAmountKey = new NamespacedKey(pluginInstance, "EXP_AMOUNT");
-        LoreLineIndexKey = new NamespacedKey(pluginInstance, "LORE_LINE");
+        LoreLineIndexKey = new NamespacedKey(pluginInstance, "LORE_LINE_INDEX");
     }
 
     @Override
@@ -232,7 +233,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         return itemMeta;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerInteractWithExpBottle(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) {
             return;
@@ -247,7 +248,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         playerExpBottleMap.put(event.getPlayer().getUniqueId(), queue);
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onThrewExpBottleLaunch(ProjectileLaunchEvent event) {
         if (!(event.getEntity().getShooter() instanceof Player shooterPlayer))
             return;
@@ -262,7 +263,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         addExpToEntity(event.getEntity(), amount);
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onExpBottleHitGround(ExpBottleEvent event) {
         if (!(event.getEntity().getShooter() instanceof Player shooterPlayer))
             return;
