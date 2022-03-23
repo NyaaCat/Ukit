@@ -32,7 +32,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
     private final NamespacedKey EXPAmountKey;
     private final NamespacedKey LoreLineIndexKey;
     private final String EXPBOTTLE_PERMISSION_NODE = "ukit.xpstore";
-    private final Map<UUID, Queue<Integer>> playerExpBottleMap = new HashMap<>();
+    private final Map<UUID, Integer> playerExpBottleMap = new HashMap<>();
     private final List<String> subCommands = List.of("store", "take");
 
     public XpStoreFunction(SpigotLoader pluginInstance) {
@@ -240,12 +240,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         }
         if (event.getItem() == null)
             return;
-        if (!isExpContainer(event.getItem()))
-            return;
-        var amount = getExpContained(event.getItem());
-        var queue = playerExpBottleMap.getOrDefault(event.getPlayer().getUniqueId(), new LinkedList<>());
-        queue.add(amount);
-        playerExpBottleMap.put(event.getPlayer().getUniqueId(), queue);
+        playerExpBottleMap.put(event.getPlayer().getUniqueId(), getExpContained(event.getItem()));
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -256,18 +251,13 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
             return;
         if (!playerExpBottleMap.containsKey(shooterPlayer.getUniqueId()))
             return;
-        var queue = playerExpBottleMap.get(shooterPlayer.getUniqueId());
-        if (queue.isEmpty())
-            return;
-        var amount = queue.remove();
+        var amount = playerExpBottleMap.get(shooterPlayer.getUniqueId());
         addExpToEntity(event.getEntity(), amount);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onExpBottleHitGround(ExpBottleEvent event) {
-        if (!(event.getEntity().getShooter() instanceof Player shooterPlayer))
-            return;
-        if (!isExpContainer(event.getEntity()))
+        if (!(event.getEntity().getShooter() instanceof Player))
             return;
         var amount = getExpContained(event.getEntity());
         event.setExperience(event.getExperience() + amount);
