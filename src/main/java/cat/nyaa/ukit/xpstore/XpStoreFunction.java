@@ -251,7 +251,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
             return;
         if (!playerExpBottleMap.containsKey(shooterPlayer.getUniqueId()))
             return;
-        var amount = playerExpBottleMap.get(shooterPlayer.getUniqueId());
+        var amount = playerExpBottleMap.remove(shooterPlayer.getUniqueId());
         addExpToEntity(event.getEntity(), amount);
     }
 
