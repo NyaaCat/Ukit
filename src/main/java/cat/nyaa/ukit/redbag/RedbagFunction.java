@@ -29,11 +29,11 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
     private final Map<UUID, Pair<FixedRedbag, String>> waitingMap = new HashMap<>();
     private final Pattern formatCodePattern = Pattern.compile("&[0-9A-Fa-fLlMmNnOoRrXxKk]");
     private final String REDBAG_PERMISSION_NODE = "ukit.redbag";
-    private final boolean isDisabled;
+    private final boolean disabled;
 
     public RedbagFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
-        isDisabled = pluginInstance.economyProvider == null;
+        disabled = pluginInstance.economyProvider == null;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
             senderPlayer.sendMessage(pluginInstance.language.commonLang.permissionDenied.produce());
             return true;
         }
-        if (isDisabled) {
+        if (disabled) {
             commandSender.sendMessage(pluginInstance.language.commonLang.functionDisabled.produce());
             return true;
         }
@@ -241,7 +241,7 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
 
     @Override
     public List<String> tabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!(sender instanceof Player playerSender)) {
+        if (disabled || !(sender instanceof Player playerSender)) {
             return null;
         }
         var completeList = new ArrayList<String>();

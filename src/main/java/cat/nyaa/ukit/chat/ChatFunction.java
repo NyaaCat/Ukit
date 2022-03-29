@@ -118,7 +118,7 @@ public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
 
     @Override
     public List<String> tabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (sender instanceof ConsoleCommandSender) {
+        if (disabled || sender instanceof ConsoleCommandSender) {
             return null;
         }
         if (args.length == 0) {

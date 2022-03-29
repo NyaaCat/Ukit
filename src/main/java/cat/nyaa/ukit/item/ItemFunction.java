@@ -17,19 +17,19 @@ import java.util.stream.Stream;
 
 public class ItemFunction implements SubCommandExecutor, SubTabCompleter {
     private final String ITEM_RENAME_PERMISSION_NODE = "ukit.item.rename";
-    private final boolean enabled;
+    private final boolean disabled;
     private final List<String> subCommands = List.of("rename");
     private final SpigotLoader pluginInstance;
 
     public ItemFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
-        enabled = pluginInstance.economyProvider != null;
+        disabled = pluginInstance.economyProvider == null;
     }
 
     @Override
     public boolean invokeCommand(CommandSender commandSender, Command command, String label, String[] args) {
         //ukit item rename <name...>
-        if (!enabled) {
+        if (disabled) {
             commandSender.sendMessage(pluginInstance.language.commonLang.functionDisabled.produce());
             return true;
         }
@@ -100,7 +100,7 @@ public class ItemFunction implements SubCommandExecutor, SubTabCompleter {
 
     @Override
     public List<String> tabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!(sender instanceof Player senderPlayer)) {
+        if (disabled || !(sender instanceof Player senderPlayer)) {
             return null;
         }
         if (args.length < 2) {
