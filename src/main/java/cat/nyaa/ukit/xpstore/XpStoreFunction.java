@@ -21,6 +21,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.ExpBottleEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -33,7 +34,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
     private final NamespacedKey LoreLineIndexKey;
     private final String EXPBOTTLE_PERMISSION_NODE = "ukit.xpstore";
     private final Map<UUID, Integer> playerExpBottleMap = new HashMap<>();
-    private final List<String> subCommands = List.of("store", "take");
+    private final List<String> subCommands = List.of("store", "take", "set");
 
     public XpStoreFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
@@ -70,54 +71,80 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         var amountItem = itemInHand.getAmount();
         int amountInput;
         try {
-            amountInput = Integer.parseInt(args[1]);
+            if(args[1].toLowerCase().charAt(args[1].length() - 1) == 'l') {
+                amountInput = ExperienceUtils.getExpForLevel(Integer.parseInt(args[1].substring(0, args[1].length() - 1)));
+            } else {
+                amountInput = Integer.parseInt(args[1]);
+            }
             if (amountInput < 0 || amountInput > config.maxAmount)
                 throw new IllegalArgumentException();
         } catch (IllegalArgumentException e) {
             senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notValidAmount.produce(Pair.of("input", args[1])));
             return true;
         }
-        if (args[0].equalsIgnoreCase("store")) {
-            var expTotal = amountItem * amountInput;
-            if (ExperienceUtils.getExpPoints(senderPlayer) < expTotal) {
-                senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notEnoughExp.produce(
-                        Pair.of("expTotal", expTotal),
-                        Pair.of("expPerBottle", amountInput),
-                        Pair.of("amount", amountItem)
-                ));
-                return true;
+        switch (args[0].toLowerCase()) {
+            case "store" -> {
+                int expTotal = amountItem * amountInput;
+                if (ExperienceUtils.getExpPoints(senderPlayer) < expTotal) {
+                    senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notEnoughExp.produce(Pair.of("expTotal", expTotal), Pair.of("expPerBottle", amountInput), Pair.of("amount", amountItem)));
+                    return true;
+                }
+                ItemStack itemSaved = addExpToItemStack(itemInHand, amountInput);
+                Utils.setItemInHand(senderPlayer, Pair.of(itemSlot, itemSaved));
+                ExperienceUtils.subtractPlayerExpPoints(senderPlayer, expTotal);
+                senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.expSaved.produce(Pair.of("amount", expTotal)));
             }
-            var itemSaved = addExpToItemStack(itemInHand, amountInput);
-            Utils.setItemInHand(senderPlayer, Pair.of(itemSlot, itemSaved));
-            ExperienceUtils.subtractExpPoints(senderPlayer, expTotal);
-            senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.expSaved.produce(
-                    Pair.of("amount", expTotal)
-            ));
-        } else if (args[0].equalsIgnoreCase("take")) {
-            var expTotal = getMinimumDivisible(amountInput, amountItem);
-            var amountAverage = expTotal / amountItem;
-            var amountContained = getExpContained(itemInHand);
-            if (amountContained < amountAverage) {
-                senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notEnoughExpInBottle.produce(
-                        Pair.of("amount", amountAverage)
-                ));
-                return true;
+            case "set" -> {
+                int expMovedTotal = getMinimumDivisible(amountInput - ExperienceUtils.getExpPoints(senderPlayer), amountItem);
+                int amountMovedAverage = expMovedTotal / amountItem;
+                int amountRemaining = getExpContained(itemInHand) - amountMovedAverage;
+                if(amountRemaining < 0) {
+                    senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notEnoughExpInBottle.produce(Pair.of("amount", amountMovedAverage)));
+                    return true;
+                }
+                ItemStack itemSaved = addExpToItemStack(itemInHand, -amountMovedAverage);
+                Utils.setItemInHand(senderPlayer, Pair.of(itemSlot, itemSaved));
+                ExperienceUtils.addPlayerExpPoints(senderPlayer, expMovedTotal);
+                if(expMovedTotal <= 0) {
+                    senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.expSaved.produce(Pair.of("amount", -expMovedTotal)));
+                } else {
+                    senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.expTook.produce(Pair.of("amount", expMovedTotal)));
+                }
             }
-            var itemSaved = addExpToItemStack(itemInHand, -amountAverage);
-            Utils.setItemInHand(senderPlayer, Pair.of(itemSlot, itemSaved));
-            ExperienceUtils.addPlayerExperience(senderPlayer, expTotal);
-            senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.expTook.produce(
-                    Pair.of("amount", expTotal)
-            ));
+            case "take" -> {
+                int expTotal = getMinimumDivisible(amountInput, amountItem);
+                int amountAverage = expTotal / amountItem;
+                int amountContained = getExpContained(itemInHand);
+                if (amountContained < amountAverage) {
+                    senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notEnoughExpInBottle.produce(Pair.of("amount", amountAverage)));
+                    return true;
+                }
+                ItemStack itemSaved = addExpToItemStack(itemInHand, -amountAverage);
+                Utils.setItemInHand(senderPlayer, Pair.of(itemSlot, itemSaved));
+                ExperienceUtils.addPlayerExpPoints(senderPlayer, expTotal);
+                senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.expTook.produce(Pair.of("amount", expTotal)));
+            }
         }
         return true;
     }
 
+    /**
+     * $ \frac{1}{2} $
+     * @param amountExpect
+     * @param factor
+     * @return
+     */
     private int getMinimumDivisible(int amountExpect, int factor) {
-        if (amountExpect % factor == 0)
+        assert factor > 0;
+        if (amountExpect % factor == 0) {
             return amountExpect;
-        else
-            return amountExpect - (amountExpect % factor) + factor;
+        } else {
+            if(amountExpect > 0) {
+                return amountExpect - (amountExpect % factor) + factor;
+            } else {
+                return amountExpect + (amountExpect % factor) + factor;
+            }
+        }
     }
 
     @Override
@@ -133,20 +160,34 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         if (args.length < 2) {
             return subCommands.stream().filter(t -> t.startsWith(args[0].toLowerCase())).toList();
         } else if (args.length == 2) {
-            var item = Utils.getItemInHand(senderPlayer, Material.EXPERIENCE_BOTTLE);
-            if (args[0].equalsIgnoreCase("store")) {
-                if (item == null)
-                    return List.of(pluginInstance.language.xpStoreLang.noExpBottleInHandTabNotice.produce());
-                else
-                    return List.of(String.valueOf(ExperienceUtils.getExpPoints(senderPlayer) / item.value().getAmount()));
-            } else if (args[0].equalsIgnoreCase("take")) {
-                if (item == null)
-                    return List.of(pluginInstance.language.xpStoreLang.noExpBottleInHandTabNotice.produce());
-                else
-                    return List.of(String.valueOf(getExpContained(item.value()) * item.value().getAmount()));
-            } else {
-                return List.of();
+            Pair<EquipmentSlot, ItemStack> item = Utils.getItemInHand(senderPlayer, Material.EXPERIENCE_BOTTLE);
+            switch (args[0].toLowerCase()) {
+                case "store"-> {
+                    if (item == null) {
+                        return List.of(pluginInstance.language.xpStoreLang.noExpBottleInHandTabNotice.produce());
+                    } else {
+                        return List.of(String.valueOf(ExperienceUtils.getExpPoints(senderPlayer) / item.value().getAmount()));
+                    }
+                }
+                case "take" -> {
+                    if (item == null) {
+                        return List.of(pluginInstance.language.xpStoreLang.noExpBottleInHandTabNotice.produce());
+                    } else {
+                        return List.of(String.valueOf(getExpContained(item.value()) * item.value().getAmount()));
+                    }
+                }
+                case "set" -> {
+                    if (item == null) {
+                        return List.of(pluginInstance.language.xpStoreLang.noExpBottleInHandTabNotice.produce());
+                    } else {
+                        return List.of("1L", "30L");
+                    }
+                }
+                default -> {
+                    return List.of();
+                }
             }
+
         } else {
             return List.of();
         }
