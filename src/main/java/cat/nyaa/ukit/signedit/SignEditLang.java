@@ -14,6 +14,6 @@ public class SignEditLang {
     public Text itemNotASign = Text.of("&cThe item which you are holding is not a sign.");
 
     public Text signInfoMsg = Text.of("&aSign preview:.");
-    public Text signInfo = Text.of("{msg}");
+    public Text signInfo = Text.of("&aSign preview:.");
 
 }
