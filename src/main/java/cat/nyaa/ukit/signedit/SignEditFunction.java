@@ -35,31 +35,10 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
         if (!(commandSender instanceof Player)) {
             commandSender.sendMessage(pluginInstance.language.commonLang.playerOnlyCommand.produce());
             return true;
-        } else if (!commandSender.hasPermission(SIGNEDIT_PERMISSION_NODE)) {
-            commandSender.sendMessage(pluginInstance.language.commonLang.permissionDenied.produce());
-            return true;
-        }
-
-        Player player = ((Player) commandSender);
-        ItemStack item = player.getInventory().getItemInMainHand().clone();
-        if (!isSign(item.getType())) {
-            commandSender.sendMessage(pluginInstance.language.signEditLang.itemNotASign.produce());
+        }  else if (args.length < 2) {
             return false;
         }
-        if (args.length < 2) {
-            printSignContent(player, msgFromItemStack(item));
-            return false;
-        }
-
-        checkAndUpdateSign(commandSender, args, (pair) -> {
-            // replace line
-            List<String> strings = msgFromItemStack(item);
-            strings.set(pair.key(), pair.value());
-            // replace item
-            player.getInventory().setItemInMainHand(toItemStack(item, strings));
-        });
-        printSignContent(player, msgFromItemStack(item));
-        return true;
+        return replaceNbt(commandSender, args);
     }
 
     private boolean checkAndUpdateSign(CommandSender commandSender, String[] args, Consumer<Pair<Integer, String>> consumer) {
@@ -83,6 +62,34 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
             consumer.accept(new Pair<>(line - 1, finalLine));
         }
         return false;
+    }
+
+    public boolean replaceNbt(CommandSender commandSender, String[] args){
+        if (!(commandSender instanceof Player)) {
+            commandSender.sendMessage(pluginInstance.language.commonLang.playerOnlyCommand.produce());
+            return true;
+        } else if (!commandSender.hasPermission(SIGNEDIT_PERMISSION_NODE)) {
+            commandSender.sendMessage(pluginInstance.language.commonLang.permissionDenied.produce());
+            return true;
+        }
+        Player player = ((Player) commandSender);
+        ItemStack item = player.getInventory().getItemInMainHand().clone();
+        if (!isSign(item.getType())) {
+            commandSender.sendMessage(pluginInstance.language.signEditLang.itemNotASign.produce());
+            return false;
+        }
+        if (args.length < 2) {
+            printSignContent(player, msgFromItemStack(item));
+            return false;
+        }
+        checkAndUpdateSign(commandSender, args, (pair) -> {
+            // replace line
+            List<String> strings = msgFromItemStack(item);
+            strings.set(pair.key(), pair.value());
+            // replace item
+            player.getInventory().setItemInMainHand(toItemStack(item, strings));
+        });
+        return true;
     }
 
     public ItemStack toItemStack(ItemStack item, List<String> lines) {
