@@ -6,6 +6,7 @@ softdepend:
   - ECore
   - EssentialsChat
   - LuckPerms
+  - LockettePro
 api-version: 1.18
 authors:
   - Nyaacat Community

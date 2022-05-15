@@ -7,10 +7,18 @@ import cat.nyaa.ukit.utils.Utils;
 import land.melon.lab.simplelanguageloader.utils.ColorConverter;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import land.melon.lab.simplelanguageloader.utils.TextUtils;
+import me.crafter.mc.lockettepro.LocketteProAPI;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.Directional;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,24 +28,31 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
     private final String SIGNEDIT_PERMISSION_NODE = "ukit.signedit";
     private final List<String> subCommands = List.of("1", "2", "3", "4");
 
+    private final boolean hasLockettePro = Bukkit.getServer().getPluginManager().getPlugin("LockettePro") != null;
+
     public SignEditFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
     }
 
     @Override
     public boolean invokeCommand(CommandSender commandSender, Command command, String label, String[] args) {
-        if (!(commandSender instanceof Player)) {
+        if (!(commandSender instanceof Player senderPlayer)) {
             commandSender.sendMessage(pluginInstance.language.commonLang.playerOnlyCommand.produce());
             return true;
-        } else if (!commandSender.hasPermission(SIGNEDIT_PERMISSION_NODE)) {
-            commandSender.sendMessage(pluginInstance.language.commonLang.permissionDenied.produce());
+        } else if (!senderPlayer.hasPermission(SIGNEDIT_PERMISSION_NODE)) {
+            senderPlayer.sendMessage(pluginInstance.language.commonLang.permissionDenied.produce());
             return true;
         } else if (args.length < 2) {
             return false;
         } else {
-            Player player = (Player) commandSender;
-            var targetBlock = Utils.getBlockLookingAt(player);
+            var targetBlock = Utils.getBlockLookingAt(senderPlayer);
             if (targetBlock.getState() instanceof Sign sign) {
+                if (hasLockettePro) {
+                    if (LocketteProAPI.isLockSignOrAdditionalSign(targetBlock) || LocketteProAPI.isLocked(targetBlock)) {
+                        commandSender.sendMessage(pluginInstance.language.signEditLang.cantModifyLockSign.produce());
+                        return true;
+                    }
+                }
                 int line;
                 try {
                     line = Integer.parseInt(args[0]);
@@ -55,14 +70,36 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                             Pair.of("max", pluginInstance.config.signEditConfig.maxLengthPerLine)
                     ));
                 } else {
+                    var lineContentBeforeChange = sign.getLine(line - 1);
                     sign.setLine(line - 1, finalLine);
                     sign.update();
+                    var blockPlaceEvent = new BlockPlaceEvent(targetBlock, targetBlock.getState(),
+                            targetBlock.getBlockData() instanceof Directional ?
+                                    targetBlock.getRelative(((Directional) targetBlock.getBlockData()).getFacing().getOppositeFace()) :
+                                    targetBlock.getRelative(BlockFace.DOWN),
+                            new ItemStack(targetBlock.getType(), 1),
+                            senderPlayer,
+                            !inInSpawnProtection(targetBlock.getLocation()) || senderPlayer.isOp(),
+                            EquipmentSlot.HAND);
+                    Bukkit.getPluginManager().callEvent(blockPlaceEvent);
+                    if (blockPlaceEvent.isCancelled()) {
+                        sign.setLine(line - 1, lineContentBeforeChange);
+                        sign.update();
+                        senderPlayer.sendMessage(pluginInstance.language.signEditLang.modifyCancelled.produce());
+                        return true;
+                    }
+
                 }
             } else {
                 commandSender.sendMessage(pluginInstance.language.signEditLang.notASign.produce());
             }
             return true;
         }
+    }
+
+
+    private boolean inInSpawnProtection(Location location) {
+        return location.toVector().subtract(location.getWorld().getSpawnLocation().toVector()).length() <= pluginInstance.getServer().getSpawnRadius();
     }
 
     @Override
@@ -84,6 +121,11 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                     var line = Integer.parseInt(args[0]);
                     var targetBlock = Utils.getBlockLookingAt(player);
                     if (targetBlock.getState() instanceof Sign sign) {
+                        if (hasLockettePro) {
+                            if (LocketteProAPI.isLockSignOrAdditionalSign(targetBlock) || LocketteProAPI.isLocked(targetBlock)) {
+                                return List.of();
+                            }
+                        }
                         var suggestion = sign.getLine(line - 1).replaceAll("&", "§§").replaceAll("§", "&");
                         return suggestion.length() == 0 ? null : List.of(suggestion);
                     }
@@ -94,7 +136,7 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
     }
 
     @Override
-    public boolean checkPermission(CommandSender commandSender){
+    public boolean checkPermission(CommandSender commandSender) {
         return commandSender.hasPermission(SIGNEDIT_PERMISSION_NODE);
     }
 }
