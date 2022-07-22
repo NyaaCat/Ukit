@@ -4,5 +4,5 @@ import java.util.List;
 
 public class SignEditConfig {
     public int maxLengthPerLine = 25;
-    public List<String> prohibitedWords = List.of("&k", "§k");
+    public List<String> wordsNotAllowed = List.of("§k");
 }

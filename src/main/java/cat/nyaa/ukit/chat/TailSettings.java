@@ -10,5 +10,4 @@ public class TailSettings {
     public int expCostLvl = 5;
     public int maxLength = 10;
     public Text customPattern = Text.of("{text}");
-    public List<String> prohibitedWords = List.of("&k", "§k");
 }

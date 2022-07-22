@@ -22,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
     private final SpigotLoader pluginInstance;
@@ -70,6 +71,14 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                             Pair.of("max", pluginInstance.config.signEditConfig.maxLengthPerLine)
                     ));
                 } else {
+                    for (String word : pluginInstance.config.signEditConfig.wordsNotAllowed) {
+                        if (finalLine.toLowerCase(Locale.ROOT).contains(word)){
+                            senderPlayer.sendMessage(pluginInstance.language.signEditLang.containsWordNotAllowed.produce(
+                                    Pair.of("word",word.replace("§","&"))
+                            ));
+                            return true;
+                        }
+                    }
                     var lineContentBeforeChange = sign.getLine(line - 1);
                     sign.setLine(line - 1, finalLine);
                     sign.update();
