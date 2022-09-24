@@ -22,7 +22,7 @@ public final class ExperienceUtils {
      * \right .
      * \]
      */
-    public static int getExpForLevel(int level) {
+    public static int getLeastExpForLevel(int level) {
         if (level < 0) {
             throw new IllegalArgumentException();
         }
@@ -43,11 +43,11 @@ public final class ExperienceUtils {
      */
     public static int getExpPoints(Player p) {
         int pointForCurrentLevel = Math.round(p.getExpToLevel() * p.getExp());
-        return getExpForLevel(p.getLevel()) + pointForCurrentLevel;
+        return getLeastExpForLevel(p.getLevel()) + pointForCurrentLevel;
     }
 
-    public static void subtractExpPoints(Player p, int points) {
-        addPlayerExperience(p, -points);
+    public static void subtractPlayerExpPoints(Player p, int points) {
+        addPlayerExpPoints(p, -points);
     }
 
     /**
@@ -86,11 +86,11 @@ public final class ExperienceUtils {
      *            if negative, then subtract from the player.
      * @throws IllegalArgumentException if the player ended with negative xp
      */
-    public static void addPlayerExperience(Player p, int points) {
+    public static void addPlayerExpPoints(Player p, int points) {
         int playerPreviousExoPoints = getExpPoints(p);
         if (playerPreviousExoPoints < -points) throw new IllegalArgumentException("Negative Exp Left");
         int newLevel = getLevelForExp(playerPreviousExoPoints + points);
-        int remPoint = playerPreviousExoPoints + points - getExpForLevel(newLevel);
+        int remPoint = playerPreviousExoPoints + points - getLeastExpForLevel(newLevel);
         p.setLevel(newLevel);
         p.setExp(0);
         p.giveExp(remPoint);
