@@ -6,11 +6,12 @@
 
     <groupId>cat.nyaa</groupId>
     <artifactId>UKit</artifactId>
-    <version>1.2</version>
+    <version>1.2-mc${minecraft.version}</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <minecraft.version>1.20</minecraft.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -34,20 +35,14 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.18.2-R0.1-SNAPSHOT</version>
+            <version>1.20-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>land.melon.lab</groupId>
             <artifactId>SimpleLanguageLoader</artifactId>
-            <version>1.12.0</version>
+            <version>1.12.0-mc${minecraft.version}</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.MilkBowl</groupId>
-            <artifactId>VaultAPI</artifactId>
-            <version>1.7</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>cat.nyaa</groupId>
@@ -71,7 +66,7 @@
     </pluginRepositories>
 
     <build>
-        <finalName>${artifactId}-${version}-b${jenkinsBuildNumber}</finalName>
+        <finalName>${artifactId}-${version}-build${jenkinsBuildNumber}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
