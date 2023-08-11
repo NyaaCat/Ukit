@@ -24,12 +24,35 @@ public class Vector3D {
         return new Vector3D(location.getX(), location.getY(), location.getZ());
     }
 
+    public double angle2dTo(Vector3D o) {
+        var dx = o.x - x;
+        var dz = o.z - z;
+        var angleInDegrees = Math.atan2(dz, dx) * 180 / Math.PI;
+
+        if (angleInDegrees >= 0)
+            angleInDegrees += 90;
+        if (angleInDegrees <= 0)
+            angleInDegrees += 450;
+
+        if (angleInDegrees > 360)
+            angleInDegrees -= 360;
+
+        return angleInDegrees;
+    }
+
     public long[] toLangArray() {
         var array = new long[3];
         array[0] = Double.doubleToLongBits(x);
         array[1] = Double.doubleToLongBits(y);
         array[2] = Double.doubleToLongBits(z);
         return array;
+    }
+
+    public Vector3D add(double dx, double dy, double dz) {
+        x += dx;
+        y += dy;
+        z += dz;
+        return this;
     }
 
     @Override

@@ -49,7 +49,8 @@ public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
             if (args[1].equalsIgnoreCase("set")) {
                 if (args.length < 3) return false;
                 var joinedText = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-                if (!joinedText.startsWith("&r")) joinedText = "&r" + joinedText;
+                if (!joinedText.startsWith("&r"))
+                    joinedText = "&r" + joinedText;
                 if (!joinedText.endsWith("&r")) joinedText = joinedText + "&r";
                 joinedText = ColorConverter.translateToLegacyColorText(joinedText, '&');
                 if (settings.enabled) {
@@ -150,7 +151,7 @@ public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
     }
 
     @Override
-    public boolean checkPermission(CommandSender commandSender){
+    public boolean checkPermission(CommandSender commandSender) {
         return commandSender.hasPermission(CHAT_PERMISSION_NODE);
     }
 }

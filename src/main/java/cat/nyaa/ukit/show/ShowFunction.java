@@ -4,11 +4,7 @@ import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import land.melon.lab.simplelanguageloader.nms.ItemUtils;
-import land.melon.lab.simplelanguageloader.nms.LocaleUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -58,7 +54,7 @@ public class ShowFunction implements SubCommandExecutor, SubTabCompleter {
     }
 
     @Override
-    public boolean checkPermission(CommandSender commandSender){
+    public boolean checkPermission(CommandSender commandSender) {
         return commandSender.hasPermission(SHOW_PERMISSION_NODE);
     }
 }

@@ -102,7 +102,7 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                     if (amount < pluginInstance.config.redbagConfig.minimumAmountPerRedbag) {
                         senderPlayer.sendMessage(pluginInstance.language.redbagLang.amountTooLow.produce(
                                 Pair.of("amount", pluginInstance.config.redbagConfig.minimumAmountPerRedbag),
-                                Pair.of("currencyUnit",pluginInstance.economyProvider.currencyNamePlural())
+                                Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
                         ));
                         return true;
                     }
@@ -111,7 +111,7 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                     if (amount / quantity < pluginInstance.config.redbagConfig.minimumAmountPerRedbag) {
                         senderPlayer.sendMessage(pluginInstance.language.redbagLang.amountTooLow.produce(
                                 Pair.of("amount", pluginInstance.config.redbagConfig.minimumAmountPerRedbag),
-                                Pair.of("currencyUnit",pluginInstance.economyProvider.currencyNamePlural())
+                                Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
                         ));
                         return true;
                     }
@@ -132,7 +132,7 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                     ));
                     return true;
                 }
-                if (password.startsWith("/")){
+                if (password.startsWith("/")) {
                     senderPlayer.sendMessage(pluginInstance.language.redbagLang.cantStartsWithSlash.produce());
                     return true;
                 }
@@ -270,7 +270,7 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
     }
 
     @Override
-    public boolean checkPermission(CommandSender commandSender){
+    public boolean checkPermission(CommandSender commandSender) {
         return commandSender.hasPermission(REDBAG_PERMISSION_NODE);
     }
 }

@@ -107,8 +107,10 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                             } else {
                                 try {
                                     switch (LockedFrameProperties.valueOf(args[1].toUpperCase())) {
-                                        case TRANSPARENT -> lookingFrame.setVisible(!args[2].equalsIgnoreCase("enable"));
-                                        case GLOWING -> lookingFrame.setGlowing(args[2].equalsIgnoreCase("enable"));
+                                        case TRANSPARENT ->
+                                                lookingFrame.setVisible(!args[2].equalsIgnoreCase("enable"));
+                                        case GLOWING ->
+                                                lookingFrame.setGlowing(args[2].equalsIgnoreCase("enable"));
                                     }
                                     player.spigot().sendMessage(getLockFramePropertyMessage(lookingFrame));
                                     return true;
@@ -205,12 +207,12 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
         }
     }
 
-    enum LockedFrameProperties {
-        TRANSPARENT, GLOWING
-    }
-
     @Override
     public boolean checkPermission(CommandSender commandSender) {
         return commandSender.hasPermission(LOCK_PERMISSION_NORMAL_NODE) || commandSender.hasPermission(LOCK_PERMISSION_PRIVILEGE_NODE);
+    }
+
+    enum LockedFrameProperties {
+        TRANSPARENT, GLOWING
     }
 }

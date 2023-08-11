@@ -72,15 +72,16 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                     ));
                 } else {
                     for (String word : pluginInstance.config.signEditConfig.wordsNotAllowed) {
-                        if (finalLine.toLowerCase(Locale.ROOT).contains(word)){
+                        if (finalLine.toLowerCase(Locale.ROOT).contains(word)) {
                             senderPlayer.sendMessage(pluginInstance.language.signEditLang.containsWordNotAllowed.produce(
-                                    Pair.of("word",word.replace("§","&"))
+                                    Pair.of("word", word.replace("§", "&"))
                             ));
                             return true;
                         }
                     }
-                    var lineContentBeforeChange = sign.getLine(line - 1);
-                    sign.setLine(line - 1, finalLine);
+                    var signSide = Utils.getSignSideLookingAt(senderPlayer, sign);
+                    var lineContentBeforeChange = signSide.getLine(line - 1);
+                    signSide.setLine(line - 1, finalLine);
                     sign.update();
                     var blockPlaceEvent = new BlockPlaceEvent(targetBlock, targetBlock.getState(),
                             targetBlock.getBlockData() instanceof Directional ?
@@ -92,7 +93,7 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                             EquipmentSlot.HAND);
                     Bukkit.getPluginManager().callEvent(blockPlaceEvent);
                     if (blockPlaceEvent.isCancelled()) {
-                        sign.setLine(line - 1, lineContentBeforeChange);
+                        signSide.setLine(line - 1, lineContentBeforeChange);
                         sign.update();
                         senderPlayer.sendMessage(pluginInstance.language.signEditLang.modifyCancelled.produce());
                         return true;
@@ -130,12 +131,14 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                     var line = Integer.parseInt(args[0]);
                     var targetBlock = Utils.getBlockLookingAt(player);
                     if (targetBlock.getState() instanceof Sign sign) {
+                        var signSide = Utils.getSignSideLookingAt(player, sign);
                         if (hasLockettePro) {
                             if (LocketteProAPI.isLockSignOrAdditionalSign(targetBlock) || LocketteProAPI.isLocked(targetBlock)) {
                                 return List.of();
                             }
                         }
-                        var suggestion = sign.getLine(line - 1).replaceAll("&", "§§").replaceAll("§", "&");
+
+                        var suggestion = signSide.getLine(line - 1).replaceAll("&", "§§").replaceAll("§", "&");
                         return suggestion.length() == 0 ? null : List.of(suggestion);
                     }
                 }

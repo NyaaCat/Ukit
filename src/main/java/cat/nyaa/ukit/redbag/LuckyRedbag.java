@@ -41,7 +41,7 @@ public class LuckyRedbag extends FixedRedbag {
 
     @Override
     public void announceFinished() {
-        if(grabbedMap.isEmpty()){
+        if (grabbedMap.isEmpty()) {
             return;
         }
         Pair<UUID, Double> luckyKingRecord = null;
@@ -54,8 +54,8 @@ public class LuckyRedbag extends FixedRedbag {
                 luckyKingRecord = Pair.of(k, grabbedMap.get(k));
         }
         Utils.silentBroadcast(pluginInstance.language.redbagLang.luckRedbagDone.produce(
-                Pair.of("owner",owner.getName()),
-                Pair.of("type",getName()),
+                Pair.of("owner", owner.getName()),
+                Pair.of("type", getName()),
                 Pair.of("luckiestOne", Bukkit.getOfflinePlayer(luckyKingRecord.key()).getName()),
                 Pair.of("amount", luckyKingRecord.value()),
                 Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())

@@ -14,8 +14,10 @@ public final class ExperienceUtils {
     public static int getExpForLevel(int level) {
         if (level < 0) throw new IllegalArgumentException();
         else if (level <= 16) return (level + 6) * level;
-        else if (level < 32) return Ints.checkedCast(Math.round(2.5 * level * level - 40.5 * level + 360));
-        else return Ints.checkedCast(Math.round(4.5 * level * level - 162.5 * level + 2220));
+        else if (level < 32)
+            return Ints.checkedCast(Math.round(2.5 * level * level - 40.5 * level + 360));
+        else
+            return Ints.checkedCast(Math.round(4.5 * level * level - 162.5 * level + 2220));
     }
 
     /**
@@ -30,7 +32,8 @@ public final class ExperienceUtils {
         if (points < 0) throw new IllegalArgumentException();
         if (points == 0) return;
         int total = getExpPoints(p);
-        if (total < points) throw new IllegalArgumentException("Negative Exp Left");
+        if (total < points)
+            throw new IllegalArgumentException("Negative Exp Left");
         int newLevel = getLevelForExp(total - points);
         int remPoint = total - points - getExpForLevel(newLevel);
         p.setLevel(newLevel);

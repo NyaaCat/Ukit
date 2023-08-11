@@ -170,7 +170,7 @@ public class SitFunction implements Listener, SubCommandExecutor, SubTabComplete
     }
 
     @Override
-    public boolean checkPermission(CommandSender commandSender){
+    public boolean checkPermission(CommandSender commandSender) {
         return commandSender.hasPermission(SIT_PERMISSION_NODE);
     }
 }

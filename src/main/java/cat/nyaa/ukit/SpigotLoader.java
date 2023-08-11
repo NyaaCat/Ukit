@@ -127,21 +127,29 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
                     sender.sendMessage(language.commonLang.reloadSuccess.produce());
                 }
             }
-            case SHOW -> invokeCommand(showFunction, sender, command, label, argTruncated);
+            case SHOW ->
+                    invokeCommand(showFunction, sender, command, label, argTruncated);
 
-            case SIT -> invokeCommand(sitFunction, sender, command, label, argTruncated);
+            case SIT ->
+                    invokeCommand(sitFunction, sender, command, label, argTruncated);
 
-            case SIGNEDIT -> invokeCommand(signEditFunction, sender, command, label, argTruncated);
+            case SIGNEDIT ->
+                    invokeCommand(signEditFunction, sender, command, label, argTruncated);
 
-            case LOCK -> invokeCommand(lockFunction, sender, command, label, argTruncated);
+            case LOCK ->
+                    invokeCommand(lockFunction, sender, command, label, argTruncated);
 
-            case CHAT -> invokeCommand(chatFunction, sender, command, label, argTruncated);
+            case CHAT ->
+                    invokeCommand(chatFunction, sender, command, label, argTruncated);
 
-            case REDBAG -> invokeCommand(redbagFunction, sender, command, label, argTruncated);
+            case REDBAG ->
+                    invokeCommand(redbagFunction, sender, command, label, argTruncated);
 
-            case ITEM -> invokeCommand(itemFunction, sender, command, label, argTruncated);
+            case ITEM ->
+                    invokeCommand(itemFunction, sender, command, label, argTruncated);
 
-            case XP -> invokeCommand(xpStoreFunction, sender, command, label, argTruncated);
+            case XP ->
+                    invokeCommand(xpStoreFunction, sender, command, label, argTruncated);
 
         }
         return true;
@@ -155,14 +163,22 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
     private boolean hasPermission(SubCommands subCommand, CommandSender commandSender) {
         return switch (subCommand) {
-            case REDBAG -> redbagFunction != null && redbagFunction.checkPermission(commandSender);
-            case SIT -> sitFunction != null && sitFunction.checkPermission(commandSender);
-            case CHAT -> chatFunction != null && chatFunction.checkPermission(commandSender);
-            case LOCK -> lockFunction != null && lockFunction.checkPermission(commandSender);
-            case SHOW -> showFunction != null && showFunction.checkPermission(commandSender);
-            case SIGNEDIT -> signEditFunction != null && signEditFunction.checkPermission(commandSender);
-            case ITEM -> itemFunction != null && itemFunction.checkPermission(commandSender);
-            case XP -> xpStoreFunction != null && xpStoreFunction.checkPermission(commandSender);
+            case REDBAG ->
+                    redbagFunction != null && redbagFunction.checkPermission(commandSender);
+            case SIT ->
+                    sitFunction != null && sitFunction.checkPermission(commandSender);
+            case CHAT ->
+                    chatFunction != null && chatFunction.checkPermission(commandSender);
+            case LOCK ->
+                    lockFunction != null && lockFunction.checkPermission(commandSender);
+            case SHOW ->
+                    showFunction != null && showFunction.checkPermission(commandSender);
+            case SIGNEDIT ->
+                    signEditFunction != null && signEditFunction.checkPermission(commandSender);
+            case ITEM ->
+                    itemFunction != null && itemFunction.checkPermission(commandSender);
+            case XP ->
+                    xpStoreFunction != null && xpStoreFunction.checkPermission(commandSender);
             case RELOAD -> commandSender.hasPermission(RELOAD_PERMISSION_NODE);
         };
     }
@@ -179,14 +195,22 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
                 var subCommand = SubCommands.valueOf(args[0].toUpperCase());
                 if (!hasPermission(subCommand, sender)) return completeList;
                 switch (subCommand) {
-                    case SHOW -> completeList = showFunction.tabComplete(sender, command, alias, argsTruncated);
-                    case SIT -> completeList = sitFunction.tabComplete(sender, command, alias, argsTruncated);
-                    case SIGNEDIT -> completeList = signEditFunction.tabComplete(sender, command, alias, argsTruncated);
-                    case LOCK -> completeList = lockFunction.tabComplete(sender, command, alias, argsTruncated);
-                    case CHAT -> completeList = chatFunction.tabComplete(sender, command, alias, argsTruncated);
-                    case REDBAG -> completeList = redbagFunction.tabComplete(sender, command, alias, argsTruncated);
-                    case ITEM -> completeList = itemFunction.tabComplete(sender, command, alias, argsTruncated);
-                    case XP -> completeList = xpStoreFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case SHOW ->
+                            completeList = showFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case SIT ->
+                            completeList = sitFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case SIGNEDIT ->
+                            completeList = signEditFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case LOCK ->
+                            completeList = lockFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case CHAT ->
+                            completeList = chatFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case REDBAG ->
+                            completeList = redbagFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case ITEM ->
+                            completeList = itemFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case XP ->
+                            completeList = xpStoreFunction.tabComplete(sender, command, alias, argsTruncated);
                     case RELOAD -> {
                     }
                 }

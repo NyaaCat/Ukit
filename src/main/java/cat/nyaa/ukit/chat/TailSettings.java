@@ -2,8 +2,6 @@ package cat.nyaa.ukit.chat;
 
 import land.melon.lab.simplelanguageloader.components.Text;
 
-import java.util.List;
-
 public class TailSettings {
     public boolean enabled = true;
     public double moneyCost = 50.0;
