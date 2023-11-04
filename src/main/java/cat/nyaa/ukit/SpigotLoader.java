@@ -9,6 +9,7 @@ import cat.nyaa.ukit.show.ShowFunction;
 import cat.nyaa.ukit.signedit.SignEditFunction;
 import cat.nyaa.ukit.sit.SitConfig;
 import cat.nyaa.ukit.sit.SitFunction;
+import cat.nyaa.ukit.utils.CompatibleScheduler;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.xpstore.XpStoreFunction;
 import com.google.gson.GsonBuilder;
@@ -55,7 +56,8 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         logger = this.getLogger();
         if (!reload()) {
             getLogger().severe("Failed to load configs, disabling...");
-            getPluginLoader().disablePlugin(this);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
         }
 
         this.getServer().getPluginCommand("ukit").setExecutor(this);
@@ -64,7 +66,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
     @Override
     public void onDisable() {
-        getServer().getScheduler().cancelTasks(this);
+        CompatibleScheduler.cancelTasks(this);
         HandlerList.unregisterAll(this);
         if (redbagFunction != null) {
             redbagFunction.refundAll();

@@ -15,7 +15,7 @@ public class FixedRedbag {
     final Player owner;
     final SpigotLoader pluginInstance;
     final Map<UUID, Double> grabbedMap = new HashMap<>();
-    boolean disabled = false;
+    boolean finished = false;
 
     public FixedRedbag(Player owner, double amount, int quantity, SpigotLoader pluginInstance) {
         this.owner = owner;
@@ -55,7 +55,7 @@ public class FixedRedbag {
                         )
                 );
                 if (grabbedMap.size() == quantity) {
-                    disable();
+                    finish();
                 }
             } else {
                 player.sendMessage(pluginInstance.language.redbagLang.failedToGrab.produce());
@@ -95,7 +95,7 @@ public class FixedRedbag {
     }
 
     public boolean isFinished() {
-        return isDisabled() || quantity == grabbedMap.size();
+        return finished;
     }
 
     public void announceFinished() {
@@ -105,11 +105,11 @@ public class FixedRedbag {
         ));
     }
 
-    public synchronized void disable() {
-        if (disabled) {
+    public synchronized void finish() {
+        if (finished) {
             return;
         }
-        disabled = true;
+        finished = true;
         announceFinished();
         var refund = getRemainingMoney();
         if (refund != 0) {
@@ -133,9 +133,5 @@ public class FixedRedbag {
                 }
             }
         }
-    }
-
-    public boolean isDisabled() {
-        return disabled;
     }
 }

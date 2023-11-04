@@ -130,16 +130,20 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                 if (subCommands.contains(args[0])) {
                     var line = Integer.parseInt(args[0]);
                     var targetBlock = Utils.getBlockLookingAt(player);
+
+                    if (targetBlock == null)
+                        return List.of();
+
                     if (targetBlock.getState() instanceof Sign sign) {
-                        var signSide = Utils.getSignSideLookingAt(player, sign);
                         if (hasLockettePro) {
                             if (LocketteProAPI.isLockSignOrAdditionalSign(targetBlock) || LocketteProAPI.isLocked(targetBlock)) {
                                 return List.of();
                             }
                         }
+                        var signSide = Utils.getSignSideLookingAt(player, sign);
 
                         var suggestion = signSide.getLine(line - 1).replaceAll("&", "§§").replaceAll("§", "&");
-                        return suggestion.length() == 0 ? null : List.of(suggestion);
+                        return suggestion.length() == 0 ? List.of() : List.of(suggestion);
                     }
                 }
             }

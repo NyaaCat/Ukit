@@ -1,6 +1,7 @@
 package cat.nyaa.ukit.redbag;
 
 import cat.nyaa.ukit.SpigotLoader;
+import cat.nyaa.ukit.utils.CompatibleScheduler;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
@@ -183,9 +184,9 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                 }
                 waitingMap.remove(senderPlayer.getUniqueId());
                 redbagMap.put(record.value(), record.key());
-                pluginInstance.getServer().getScheduler().runTaskLater(pluginInstance, () -> {
-                    if (!record.key().isDisabled()) {
-                        redbagMap.remove(record.value()).disable();
+                CompatibleScheduler.runTaskLater(pluginInstance, () -> {
+                    if (!record.key().isFinished()) {
+                        redbagMap.remove(record.value()).finish();
                     }
                 }, pluginInstance.config.redbagConfig.redbagLifeInSecond * 20L);
                 senderPlayer.sendMessage(pluginInstance.language.redbagLang.redbagCreatedFeedback.produce());
@@ -219,10 +220,11 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
             var redbag = redbagMap.get(event.getMessage());
             if (!redbag.isGrabbed(event.getPlayer())) {
                 pluginInstance.getServer().getScheduler().runTaskLater(pluginInstance, () -> {
-                    redbag.grub(event.getPlayer());
-                    if (redbag.isDisabled()) {
+                    if (redbag.isFinished()) {
                         redbagMap.remove(event.getMessage());
+                        return;
                     }
+                    redbag.grub(event.getPlayer());
                 }, 1);
             }
         }
@@ -265,7 +267,7 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
     }
 
     public void refundAll() {
-        redbagMap.values().forEach(FixedRedbag::disable);
+        redbagMap.values().forEach(FixedRedbag::finish);
         redbagMap.clear();
     }
 
