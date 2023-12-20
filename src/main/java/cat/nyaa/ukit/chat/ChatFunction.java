@@ -3,32 +3,42 @@ package cat.nyaa.ukit.chat;
 import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import land.melon.lab.simplelanguageloader.utils.ColorConverter;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import land.melon.lab.simplelanguageloader.utils.TextUtils;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
+public class ChatFunction implements SubCommandExecutor, SubTabCompleter, Listener {
     public final String CHAT_PERMISSION_NODE = "ukit.chat";
     private final SpigotLoader pluginInstance;
-    private final List<String> subCommands = List.of("prefix", "suffix");
-    private final List<String> options = List.of("set", "remove");
+    private final List<String> subCommands = List.of("prefix", "suffix", "signature");
+    private final List<String> prefixOptions = List.of("set", "remove");
+    private final List<String> signaturePreferences = List.of("true", "false");
+
+    private final NamespacedKey MSG_SIGNATURE_FLAG;
     private final boolean disabled;
 
     public ChatFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
+        MSG_SIGNATURE_FLAG = new NamespacedKey(pluginInstance, "MSG_SIGNATURE_FLAG");
         disabled = pluginInstance.chatProvider == null || pluginInstance.economyProvider == null;
     }
 
     @Override
     public boolean invokeCommand(CommandSender commandSender, Command command, String label, String[] args) {
         //ukit chat <prefix|suffix> <set|remove> <content>
+        //ukit chat signature <true|false>
         if (!(commandSender instanceof Player senderPlayer)) {
             commandSender.sendMessage(pluginInstance.language.commonLang.playerOnlyCommand.produce());
             return true;
@@ -39,9 +49,22 @@ public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
         } else if (!senderPlayer.hasPermission(CHAT_PERMISSION_NODE)) {
             senderPlayer.sendMessage(pluginInstance.language.commonLang.permissionDenied.produce());
             return true;
-        } else if (args.length < 2 || !subCommands.contains(args[0].toLowerCase()) || !options.contains(args[1].toLowerCase())) {
+        } else if (args.length < 2 || !subCommands.contains(args[0].toLowerCase())) {
             return false;
         } else {
+            if ("signature".equalsIgnoreCase(args[0])) {
+                var preference = Boolean.valueOf(args[1]);
+                senderPlayer.getPersistentDataContainer().set(MSG_SIGNATURE_FLAG, PersistentDataType.BOOLEAN, preference);
+                senderPlayer.sendMessage(
+                        pluginInstance.language.chatLang.signaturePreferenceSet.produce(
+                                Pair.of("flag", preference ?
+                                        pluginInstance.language.commonLang.textTrue.produce() : pluginInstance.language.commonLang.textFalse.produce())
+                        )
+                );
+                return true;
+            } //else prefix/suffix
+            if (!prefixOptions.contains(args[1].toLowerCase()))
+                return false;
             var isPrefix = args[0].equalsIgnoreCase("prefix");
             var settings = isPrefix ? pluginInstance.config.chatSettings.prefix : pluginInstance.config.chatSettings.suffix;
             var lang = isPrefix ? pluginInstance.language.chatLang.prefixLang : pluginInstance.language.chatLang.suffixLang;
@@ -112,6 +135,18 @@ public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
         }
     }
 
+    @EventHandler
+    public void onPlayerChat(AsyncChatEvent event) {
+        var dataContainer = event.getPlayer().getPersistentDataContainer();
+        if (dataContainer.has(MSG_SIGNATURE_FLAG) && Boolean.FALSE.equals(dataContainer.get(MSG_SIGNATURE_FLAG, PersistentDataType.BOOLEAN))) {
+            event.setCancelled(true);
+            event.viewers().forEach(t -> {
+                t.sendMessage(event.renderer().render(event.getPlayer(), event.getPlayer().displayName(), event.message(), t));
+            });
+        }
+        //skip if true
+    }
+
     @Override
     public String getHelp() {
         return pluginInstance.language.chatLang.help.produce();
@@ -127,20 +162,22 @@ public class ChatFunction implements SubCommandExecutor, SubTabCompleter {
         } else if (args.length == 1) {
             return subCommands.stream().filter(t -> t.startsWith(args[0])).toList();
         } else if (args.length == 2) {
-            return options.stream().filter(t -> t.startsWith(args[1])).toList();
+            return ("signature".equalsIgnoreCase(args[0]) ?
+                    signaturePreferences : prefixOptions).stream().filter(t -> t.startsWith(args[1])).toList();
         } else if (args.length == 3) {
+            if ("signature".equalsIgnoreCase(args[0])) return null;
             if (!subCommands.contains(args[0].toLowerCase()) || !args[1].equalsIgnoreCase("set"))
                 return null;
             var isPrefix = args[0].equalsIgnoreCase("prefix");
             if (isPrefix) {
                 var prefix = pluginInstance.chatProvider.getPlayerPrefix((Player) sender);
-                if (prefix.length() == 0)
+                if (prefix.isEmpty())
                     return null;
                 else
                     return List.of(prefix.trim().replace("&", "§§").replace("§", "&"));
             } else /*suffix*/ {
                 var suffix = pluginInstance.chatProvider.getPlayerSuffix((Player) sender);
-                if (suffix.length() == 0)
+                if (suffix.isEmpty())
                     return null;
                 else
                     return List.of(suffix.trim().replace("&", "§§").replace("§", "&"));
