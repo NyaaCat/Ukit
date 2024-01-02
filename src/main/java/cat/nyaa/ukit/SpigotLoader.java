@@ -9,7 +9,6 @@ import cat.nyaa.ukit.show.ShowFunction;
 import cat.nyaa.ukit.signedit.SignEditFunction;
 import cat.nyaa.ukit.sit.SitConfig;
 import cat.nyaa.ukit.sit.SitFunction;
-import cat.nyaa.ukit.utils.CompatibleScheduler;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.xpstore.XpStoreFunction;
 import com.google.gson.GsonBuilder;
@@ -66,7 +65,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
 
     @Override
     public void onDisable() {
-        CompatibleScheduler.cancelTasks(this);
+        getServer().getGlobalRegionScheduler().cancelTasks(this);
         HandlerList.unregisterAll(this);
         if (redbagFunction != null) {
             redbagFunction.refundAll();
@@ -90,11 +89,12 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         itemFunction = new ItemFunction(this);
         xpStoreFunction = new XpStoreFunction(this);
 
+
         //event handlers
         getServer().getPluginManager().registerEvents(sitFunction, this);
         getServer().getPluginManager().registerEvents(redbagFunction, this);
         getServer().getPluginManager().registerEvents(xpStoreFunction, this);
-
+        getServer().getPluginManager().registerEvents(chatFunction, this);
         //reload config
         try {
             config = configLoader.loadOrInitialize(configFile, MainConfig.class, MainConfig::new);

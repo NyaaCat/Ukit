@@ -1,7 +1,6 @@
 package cat.nyaa.ukit.redbag;
 
 import cat.nyaa.ukit.SpigotLoader;
-import cat.nyaa.ukit.utils.CompatibleScheduler;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
@@ -184,7 +183,7 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                 }
                 waitingMap.remove(senderPlayer.getUniqueId());
                 redbagMap.put(record.value(), record.key());
-                CompatibleScheduler.runTaskLater(pluginInstance, () -> {
+                pluginInstance.getServer().getGlobalRegionScheduler().runDelayed(pluginInstance, (task) -> {
                     if (!record.key().isFinished()) {
                         redbagMap.remove(record.value()).finish();
                     }
