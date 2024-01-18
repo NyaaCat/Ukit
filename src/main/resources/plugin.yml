@@ -9,6 +9,8 @@ softdepend:
   - LockettePro
 api-version: 1.20
 folia-supported: true
+libraries:
+  - org.xerial:sqlite-jdbc:3.44.1.0
 authors:
   - Nyaacat Community
 commands:

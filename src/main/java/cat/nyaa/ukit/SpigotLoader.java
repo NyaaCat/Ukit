@@ -2,6 +2,7 @@ package cat.nyaa.ukit;
 
 import cat.nyaa.ecore.EconomyCore;
 import cat.nyaa.ukit.chat.ChatFunction;
+import cat.nyaa.ukit.elytra.ElytraFunction;
 import cat.nyaa.ukit.item.ItemFunction;
 import cat.nyaa.ukit.lock.LockFunction;
 import cat.nyaa.ukit.redbag.RedbagFunction;
@@ -48,6 +49,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     private RedbagFunction redbagFunction;
     private ItemFunction itemFunction;
     private XpStoreFunction xpStoreFunction;
+    private ElytraFunction elytraFunction;
 
     @Override
     public void onEnable() {
@@ -76,6 +78,16 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         //reset
         onDisable();
 
+        //reload config
+        try {
+            config = configLoader.loadOrInitialize(configFile, MainConfig.class, MainConfig::new);
+            language = configLoader.loadOrInitialize(languageFile, MainLang.class, MainLang::new);
+            assert config != null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
         //setup chat & economy
         IGNORE_RESULT(setupEconomy() && setupChat());
 
@@ -88,6 +100,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         redbagFunction = new RedbagFunction(this);
         itemFunction = new ItemFunction(this);
         xpStoreFunction = new XpStoreFunction(this);
+        elytraFunction = new ElytraFunction(this);
 
 
         //event handlers
@@ -95,14 +108,8 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         getServer().getPluginManager().registerEvents(redbagFunction, this);
         getServer().getPluginManager().registerEvents(xpStoreFunction, this);
         getServer().getPluginManager().registerEvents(chatFunction, this);
-        //reload config
-        try {
-            config = configLoader.loadOrInitialize(configFile, MainConfig.class, MainConfig::new);
-            language = configLoader.loadOrInitialize(languageFile, MainLang.class, MainLang::new);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+        getServer().getPluginManager().registerEvents(elytraFunction, this);
+
         return true;
     }
 
