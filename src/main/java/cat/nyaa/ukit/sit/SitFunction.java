@@ -48,7 +48,7 @@ public class SitFunction implements Listener, SubCommandExecutor, SubTabComplete
         if (!relativeUpper1.getBlock().getType().isAir())
             return;
         baseLocation.setY(event.getClickedBlock().getBoundingBox().getMaxY()); /* on the top of clicked block */
-        baseLocation.add(0.5, -0.3, 0.5);
+        baseLocation.add(0.5, -0.03, 0.5);
 
         var nearByEntities = baseLocation.getWorld().getNearbyEntities(baseLocation, 0.5, 0.7, 0.5);
         if (nearByEntities.stream().anyMatch(e -> e.getType() == EntityType.ARMOR_STAND && isSitMarker(e))) {
