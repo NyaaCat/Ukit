@@ -3,8 +3,8 @@ package cat.nyaa.ukit.item;
 import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
-import land.melon.lab.simplelanguageloader.nms.ItemUtils;
 import land.melon.lab.simplelanguageloader.utils.ColorConverter;
+import land.melon.lab.simplelanguageloader.utils.ItemUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import land.melon.lab.simplelanguageloader.utils.TextUtils;
 import org.bukkit.command.Command;
@@ -84,7 +84,7 @@ public class ItemFunction implements SubCommandExecutor, SubTabCompleter {
             } else {
                 senderPlayer.getInventory().setItemInMainHand(itemInHand);
             }
-            senderPlayer.spigot().sendMessage(pluginInstance.language.itemLang.success.produceWithBaseComponent(
+            senderPlayer.sendMessage(pluginInstance.language.itemLang.success.produceAsComponent(
                     Pair.of("name", ItemUtils.itemTextWithHover(itemInHand)),
                     Pair.of("amount", costTotal),
                     Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())

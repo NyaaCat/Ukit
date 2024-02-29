@@ -5,10 +5,10 @@ import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -145,14 +145,16 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                     return true;
                 }
                 waitingMap.put(senderPlayer.getUniqueId(), Pair.of(redbag, password));
-                var yesButton = new TextComponent(TextComponent.fromLegacyText(pluginInstance.language.redbagLang.previewYesButtonText.produce()));
-                yesButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(TextComponent.fromLegacyText(pluginInstance.language.redbagLang.previewYesButtonHoverText.produce()))));
-                yesButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ukit redbag confirm"));
-                var noButton = new TextComponent(TextComponent.fromLegacyText(pluginInstance.language.redbagLang.previewNoButtonText.produce()));
-                noButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(TextComponent.fromLegacyText(pluginInstance.language.redbagLang.previewNoButtonHoverText.produce()))));
-                noButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ukit redbag cancel"));
-                senderPlayer.spigot().sendMessage(
-                        pluginInstance.language.redbagLang.redbagPreview.produceWithBaseComponent(
+                var confirmCommand = "/ukit redbag confirm";
+                var yesButton = LegacyComponentSerializer.legacySection().deserialize(pluginInstance.language.redbagLang.previewYesButtonText.colored())
+                        .hoverEvent(HoverEvent.showText(Component.text(confirmCommand)))
+                        .clickEvent(ClickEvent.runCommand(confirmCommand));
+                var cancelCommand = "/ukit redbag cancel";
+                var noButton = LegacyComponentSerializer.legacySection().deserialize(pluginInstance.language.redbagLang.previewNoButtonText.produce())
+                        .hoverEvent(HoverEvent.showText(Component.text(cancelCommand)))
+                        .clickEvent(ClickEvent.runCommand(cancelCommand));
+                senderPlayer.sendMessage(
+                        pluginInstance.language.redbagLang.redbagPreview.produceAsComponent(
                                 Pair.of("type", redbag.getName()),
                                 Pair.of("amount", redbag.getAmountTotal()),
                                 Pair.of("quantity", redbag.getQuantity()),
@@ -189,12 +191,12 @@ public class RedbagFunction implements SubCommandExecutor, SubTabCompleter, List
                     }
                 }, pluginInstance.config.redbagConfig.redbagLifeInSecond * 20L);
                 senderPlayer.sendMessage(pluginInstance.language.redbagLang.redbagCreatedFeedback.produce());
-                var grabButton = new TextComponent(TextComponent.fromLegacyText(pluginInstance.language.redbagLang.grabButtonText.produce()));
-                grabButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(TextComponent.fromLegacyText(pluginInstance.language.redbagLang.grabButtonHoverText.produce(
-                        Pair.of("password", record.value())
-                )))));
-                grabButton.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, record.value()));
-                Utils.silentBroadcast(pluginInstance.language.redbagLang.redbagBroadcast.produceWithBaseComponent(
+                var grabButton = LegacyComponentSerializer.legacySection().deserialize(pluginInstance.language.redbagLang.grabButtonText.colored())
+                        .hoverEvent(HoverEvent.showText(LegacyComponentSerializer.legacySection().deserialize(pluginInstance.language.redbagLang.grabButtonHoverText.produce(
+                                Pair.of("password", record.value())
+                        ))))
+                        .clickEvent(ClickEvent.suggestCommand(record.value()));
+                Utils.silentBroadcast(pluginInstance.language.redbagLang.redbagBroadcast.produceAsComponent(
                         Pair.of("player", senderPlayer.getName()),
                         Pair.of("type", record.key().getName()),
                         Pair.of("password", record.value()),

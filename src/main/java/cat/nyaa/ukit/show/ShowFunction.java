@@ -3,7 +3,7 @@ package cat.nyaa.ukit.show;
 import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
-import land.melon.lab.simplelanguageloader.nms.ItemUtils;
+import land.melon.lab.simplelanguageloader.utils.ItemUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -33,8 +33,8 @@ public class ShowFunction implements SubCommandExecutor, SubTabCompleter {
         }
         var itemInHand = senderPlayer.getInventory().getItemInMainHand();
         // don't know how to use new Content API
-        pluginInstance.getServer().spigot().broadcast(
-                (itemInHand.getAmount() == 1 ? pluginInstance.language.showLang.showMessageSingle : pluginInstance.language.showLang.showMessageMultiple).produceWithBaseComponent(
+        pluginInstance.getServer().broadcast(
+                (itemInHand.getAmount() == 1 ? pluginInstance.language.showLang.showMessageSingle : pluginInstance.language.showLang.showMessageMultiple).produceAsComponent(
                         Pair.of("player", senderPlayer.getName()),
                         Pair.of("item", ItemUtils.itemTextWithHover(itemInHand)),
                         Pair.of("amount", itemInHand.getAmount())

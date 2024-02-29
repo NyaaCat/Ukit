@@ -1,7 +1,7 @@
 package cat.nyaa.ukit.utils;
 
 import land.melon.lab.simplelanguageloader.utils.Pair;
-import net.md_5.bungee.api.chat.BaseComponent;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -108,13 +108,9 @@ public class Utils {
         );
     }
 
-    public static void silentBroadcast(BaseComponent baseComponent) {
-        silentBroadcast(new BaseComponent[]{baseComponent});
-    }
-
-    public static void silentBroadcast(BaseComponent[] baseComponents) {
+    public static void silentBroadcast(Component component) {
         Bukkit.getOnlinePlayers().forEach(
-                p -> p.spigot().sendMessage(baseComponents)
+                p -> p.sendMessage(component)
         );
     }
 

@@ -4,14 +4,13 @@ import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
-import land.melon.lab.simplelanguageloader.nms.ItemUtils;
-import land.melon.lab.simplelanguageloader.nms.LocaleUtils;
+import land.melon.lab.simplelanguageloader.utils.ItemUtils;
+import land.melon.lab.simplelanguageloader.utils.LocaleUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
@@ -84,10 +83,9 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                             commandSender.sendMessage(pluginInstance.language.lockLang.notLockFrame.produce());
                         } else {
                             var itemComponent = LocaleUtils.getTranslatableItemComponent(lookingFrame.getItem());
-                            itemComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new BaseComponent[]{new TextComponent(ItemUtils.itemStackToJson(lookingFrame.getItem()))}));
-                            commandSender.spigot().sendMessage(pluginInstance.language.lockLang.lockFrameInfo.produceWithBaseComponent(
+                            commandSender.sendMessage(pluginInstance.language.lockLang.lockFrameInfo.produce(
                                     Pair.of("owner", Bukkit.getOfflinePlayer(getLockingOwner(lookingFrame)).getName()),
-                                    Pair.of("item", itemComponent)
+                                    Pair.of("item", ItemUtils.itemTextWithHover(lookingFrame.getItem()))
                             ));
                         }
                         return true;
@@ -102,7 +100,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                             return true;
                         } else {
                             if (args.length == 1) {
-                                player.spigot().sendMessage(getLockFramePropertyMessage(lookingFrame));
+                                player.sendMessage(getLockFramePropertyMessage(lookingFrame));
                                 return true;
                             } else {
                                 try {
@@ -112,7 +110,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                                         case GLOWING ->
                                                 lookingFrame.setGlowing(args[2].equalsIgnoreCase("enable"));
                                     }
-                                    player.spigot().sendMessage(getLockFramePropertyMessage(lookingFrame));
+                                    player.sendMessage(getLockFramePropertyMessage(lookingFrame));
                                     return true;
                                 } catch (IllegalArgumentException e) {
                                     commandSender.sendMessage(pluginInstance.language.lockLang.invalidProperty.produce(
@@ -129,19 +127,20 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
         }
     }
 
-    private BaseComponent[] getLockFramePropertyMessage(ItemFrame frame) {
+    private Component getLockFramePropertyMessage(ItemFrame frame) {
         var transparent = !frame.isVisible();
-        var glowing = frame.isGlowing();
-        var transparentButton = new TextComponent(TextComponent.fromLegacyText(transparent ? pluginInstance.language.commonLang.buttonOff.colored() : pluginInstance.language.commonLang.buttonOn.colored()));
         var transparentCmd = "/ukit lock property transparent " + (transparent ? "disable" : "enable");
-        var glowingCmd = "/ukit lock property glowing " + (glowing ? "disable" : "enable");
-        transparentButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(transparentCmd)));
-        transparentButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, transparentCmd));
-        var glowingButton = new TextComponent(TextComponent.fromLegacyText(glowing ? pluginInstance.language.commonLang.buttonOff.colored() : pluginInstance.language.commonLang.buttonOn.colored()));
-        glowingButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(glowingCmd)));
-        glowingButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, glowingCmd));
+        var transparentButton = LegacyComponentSerializer.legacySection().deserialize(transparent ? pluginInstance.language.commonLang.buttonOff.colored() : pluginInstance.language.commonLang.buttonOn.colored())
+                .hoverEvent(HoverEvent.showText(Component.text(transparentCmd)))
+                .clickEvent(ClickEvent.runCommand(transparentCmd));
 
-        return pluginInstance.language.lockLang.lockFrameProperties.produceWithBaseComponent(
+        var glowing = frame.isGlowing();
+        var glowingCmd = "/ukit lock property glowing " + (glowing ? "disable" : "enable");
+        var glowingButton = LegacyComponentSerializer.legacySection().deserialize(glowing ? pluginInstance.language.commonLang.buttonOff.colored() : pluginInstance.language.commonLang.buttonOn.colored())
+                .hoverEvent(HoverEvent.showText(Component.text(glowingCmd)))
+                .clickEvent(ClickEvent.runCommand(glowingCmd));
+
+        return pluginInstance.language.lockLang.lockFrameProperties.produceAsComponent(
                 Pair.of("transparent", transparent ? pluginInstance.language.commonLang.textTrue : pluginInstance.language.commonLang.textFalse),
                 Pair.of("growing" /*for typo in previous version*/, glowing ? pluginInstance.language.commonLang.textTrue : pluginInstance.language.commonLang.textFalse),
                 Pair.of("glowing", glowing ? pluginInstance.language.commonLang.textTrue : pluginInstance.language.commonLang.textFalse),
