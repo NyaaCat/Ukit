@@ -82,10 +82,10 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                         if (!isLockedFrame(lookingFrame)) {
                             commandSender.sendMessage(pluginInstance.language.lockLang.notLockFrame.produce());
                         } else {
-                            var itemComponent = LocaleUtils.getTranslatableItemComponent(lookingFrame.getItem());
-                            commandSender.sendMessage(pluginInstance.language.lockLang.lockFrameInfo.produce(
+                            var itemComponent = ItemUtils.itemTextWithHover(lookingFrame.getItem());
+                            commandSender.sendMessage(pluginInstance.language.lockLang.lockFrameInfo.produceAsComponent(
                                     Pair.of("owner", Bukkit.getOfflinePlayer(getLockingOwner(lookingFrame)).getName()),
-                                    Pair.of("item", ItemUtils.itemTextWithHover(lookingFrame.getItem()))
+                                    Pair.of("item", itemComponent)
                             ));
                         }
                         return true;
