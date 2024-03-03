@@ -5,15 +5,26 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Firework;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class ElytraFunction implements Listener {
     private final SpigotLoader pluginInstance;
     private final Material holdingItemType;
+
+    private final Map<UUID, Integer> fireworkSlotCache = new HashMap<>();
+
+    private final Map<UUID, Firework> fireworkBind = new HashMap<>();
 
     public ElytraFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
@@ -22,43 +33,80 @@ public class ElytraFunction implements Listener {
 
     @EventHandler
     public void onPlayerGliding(PlayerMoveEvent event) {
-        // skip if speed is high or player is not gliding
-        if (!event.getPlayer().isGliding())
+        var player = event.getPlayer();
+
+        // skip if player is not gliding
+        if (!player.isGliding())
             return;
 
-        if (event.getPlayer().getInventory().getItemInMainHand().getType() != holdingItemType)
+        if (player.getInventory().getItemInMainHand().getType() != holdingItemType)
             return;
 
         // generate a speed indication bar ("||" for each 0.1 speed, gold for below trigger speed
-        var speed = event.getPlayer().getVelocity().length();
+        var speed = player.getVelocity().length();
         var speedBar = Component.text();
         for (var i = 0; i < 25; i++) {
             speedBar.append(Component.text("||").color(speed * 10 < i ? TextColor.color(NamedTextColor.GRAY) : TextColor.color(i < pluginInstance.config.elytraConfig.triggerSpeed * 10 ? 0xe89f64 : 0x96db81)));
         }
-        speedBar.append(Component.text(" " + String.format("%.2f", speed * 20 * 0.06) + " km/min").color(TextColor.color(NamedTextColor.WHITE)));
-        event.getPlayer().sendActionBar(speedBar);
+        speedBar.append(Component.text(" " + String.format("%.2f", speed * 20 * 60 / 1000) + " km/min").color(TextColor.color(NamedTextColor.WHITE)));
+        player.sendActionBar(speedBar);
 
         // skip if speed exceed 0.8
-        if (event.getPlayer().getVelocity().length() > pluginInstance.config.elytraConfig.triggerSpeed)
+        if (player.getVelocity().length() > pluginInstance.config.elytraConfig.triggerSpeed)
             return;
 
+        // skip if player is snaking
+        if (player.isSneaking())
+            return;
+
+        // skip if player is speeding up
+        if (fireworkBind.containsKey(player.getUniqueId())) {
+            if (fireworkBind.get(player.getUniqueId()).isDetonated()) {
+                fireworkBind.remove(player.getUniqueId());
+            } else {
+                return;
+            }
+        }
+
         // select firework in pack
-        var fireworkSlot = selectFireworkSlot(event.getPlayer().getInventory());
+        var fireworkSlot = selectFireworkSlot(player);
         if (fireworkSlot == -1) return;
-        var fireworkItem = subtractOneItem(event.getPlayer().getInventory(), fireworkSlot);
+        var fireworkItem = subtractOneItem(player.getInventory(), fireworkSlot);
         if (fireworkItem == null) return;
 
-        event.getPlayer().fireworkBoost(fireworkItem);
+        var firework = player.fireworkBoost(fireworkItem);
+        fireworkBind.put(player.getUniqueId(), firework);
     }
 
-    private int selectFireworkSlot(PlayerInventory inventory) {
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        // clear cache for offline player
+        fireworkSlotCache.remove(event.getPlayer().getUniqueId());
+        fireworkBind.remove(event.getPlayer().getUniqueId());
+    }
+
+    private int selectFireworkSlot(Player player) {
+        var inventory = player.getInventory();
+
+        // trying to use a location cache
+        var cacheLoc = fireworkSlotCache.getOrDefault(player.getUniqueId(), -1);
+        if (cacheLoc != -1) {
+            var item = inventory.getItem(cacheLoc);
+            if (item != null && item.getType() == Material.FIREWORK_ROCKET) {
+                return cacheLoc;
+            }
+        }
+
         for (var i = 0; i < inventory.getSize(); i++) {
             var item = inventory.getItem(i);
             if (item == null) continue;
             if (item.getType() == Material.FIREWORK_ROCKET) {
+                fireworkSlotCache.put(player.getUniqueId(), i);
                 return i;
             }
         }
+
+        fireworkSlotCache.remove(player.getUniqueId());
         return -1;
     }
 
