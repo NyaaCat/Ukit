@@ -41,7 +41,7 @@
         <dependency>
             <groupId>land.melon.lab</groupId>
             <artifactId>SimpleLanguageLoader</artifactId>
-            <version>1.13.0</version>
+            <version>1.13.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
