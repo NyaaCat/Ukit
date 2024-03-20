@@ -47,6 +47,10 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
             return false;
         } else {
             var targetBlock = Utils.getBlockLookingAt(senderPlayer);
+            if (targetBlock == null) {
+                commandSender.sendMessage(pluginInstance.language.signEditLang.notASign.produce());
+                return true;
+            }
             if (targetBlock.getState() instanceof Sign sign) {
                 if (hasLockettePro) {
                     if (LocketteProAPI.isLockSignOrAdditionalSign(targetBlock) || LocketteProAPI.isLocked(targetBlock)) {
