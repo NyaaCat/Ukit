@@ -4,6 +4,7 @@ version: ${project.version}
 softdepend:
   - Vault
   - ECore
+  - Essentials
   - EssentialsChat
   - LuckPerms
   - LockettePro

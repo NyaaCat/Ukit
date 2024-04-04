@@ -230,6 +230,12 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     }
 
     private boolean setupEconomy() {
+        try {
+            Class.forName("cat.nyaa.ecore.EconomyCore");
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+
         var rsp = Bukkit.getServicesManager().getRegistration(EconomyCore.class);
         if (rsp != null) {
             economyProvider = rsp.getProvider();
