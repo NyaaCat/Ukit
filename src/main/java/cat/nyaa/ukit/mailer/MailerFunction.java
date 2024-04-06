@@ -214,6 +214,24 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
         if (block == null) return;
         if (!isValidMailbox(block.getState())) return;
 
+        mailboxSettingHoldTaskMap.get(event.getPlayer().getUniqueId()).cancel();
+        mailboxSettingHoldTaskMap.remove(event.getPlayer().getUniqueId());
+        event.setCancelled(true);
+
+        if (!pluginInstance.economyProvider.withdrawPlayer(event.getPlayer().getUniqueId(), pluginInstance.config.mailerConfig.setMailboxCost)) {
+            event.getPlayer().sendMessage(
+                    getLanguage().mailerLang.moneyNotEnough.produce(
+                            Pair.of("amount", pluginInstance.config.mailerConfig.setMailboxCost),
+                            Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
+                    )
+            );
+            event.getPlayer().sendMessage(
+                    getLanguage().mailerLang.setCancelled.produce()
+            );
+            return;
+        }
+        pluginInstance.economyProvider.depositSystemVault(pluginInstance.config.mailerConfig.setMailboxCost);
+
         try {
             locRecorder.setMailboxLoc(event.getPlayer().getUniqueId(), new MailboxLoc(block.getX(), block.getY(), block.getZ(), block.getWorld().getUID()));
             event.getPlayer().sendMessage(
@@ -221,7 +239,9 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
                             Pair.of("x", block.getX()),
                             Pair.of("y", block.getY()),
                             Pair.of("z", block.getZ()),
-                            Pair.of("world", block.getWorld().getName())
+                            Pair.of("world", block.getWorld().getName()),
+                            Pair.of("amount", pluginInstance.config.mailerConfig.setMailboxCost),
+                            Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
                     )
             );
         } catch (SQLException e) {
@@ -230,9 +250,6 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
                     getLanguage().commonLang.sqlErrorOccurred.produce()
             );
         }
-        mailboxSettingHoldTaskMap.get(event.getPlayer().getUniqueId()).cancel();
-        mailboxSettingHoldTaskMap.remove(event.getPlayer().getUniqueId());
-        event.setCancelled(true);
     }
 
 
@@ -243,11 +260,7 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
 
     @Override
     public List<String> tabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        //        "&7Usage:",
-//                "&7    &n/u mailer <options...>",
-//                "&7    &n/u mailer mailbox <set|clear>&7: set/clear your mailbox",
-//                "&7    &n/u mailer sendto <player>&7: send the item in your main hand to the mailbox of a player"
-        if (disabled || !(sender instanceof Player playerSender)) {
+        if (disabled || !(sender instanceof Player)) {
             return null;
         }
         if (args.length <= 1) {
