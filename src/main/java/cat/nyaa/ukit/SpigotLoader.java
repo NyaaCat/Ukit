@@ -5,6 +5,7 @@ import cat.nyaa.ukit.chat.ChatFunction;
 import cat.nyaa.ukit.elytra.ElytraFunction;
 import cat.nyaa.ukit.item.ItemFunction;
 import cat.nyaa.ukit.lock.LockFunction;
+import cat.nyaa.ukit.mailer.MailerFunction;
 import cat.nyaa.ukit.redbag.RedbagFunction;
 import cat.nyaa.ukit.show.ShowFunction;
 import cat.nyaa.ukit.signedit.SignEditFunction;
@@ -25,6 +26,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,6 +52,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     private ItemFunction itemFunction;
     private XpStoreFunction xpStoreFunction;
     private ElytraFunction elytraFunction;
+    private MailerFunction mailerFunction;
 
     @Override
     public void onEnable() {
@@ -101,6 +104,12 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         itemFunction = new ItemFunction(this);
         xpStoreFunction = new XpStoreFunction(this);
         elytraFunction = new ElytraFunction(this);
+        try {
+            mailerFunction = new MailerFunction(this, new File(getDataFolder(), "mailboxes.sqlite3"));
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
 
 
         //event handlers
@@ -109,6 +118,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         getServer().getPluginManager().registerEvents(xpStoreFunction, this);
         getServer().getPluginManager().registerEvents(chatFunction, this);
         getServer().getPluginManager().registerEvents(elytraFunction, this);
+        getServer().getPluginManager().registerEvents(mailerFunction, this);
 
         return true;
     }
@@ -160,6 +170,9 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
             case XP ->
                     invokeCommand(xpStoreFunction, sender, command, label, argTruncated);
 
+            case MAILER ->
+                    invokeCommand(mailerFunction, sender, command, label, argTruncated);
+
         }
         return true;
     }
@@ -188,6 +201,8 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
                     itemFunction != null && itemFunction.checkPermission(commandSender);
             case XP ->
                     xpStoreFunction != null && xpStoreFunction.checkPermission(commandSender);
+            case MAILER ->
+                    mailerFunction != null && mailerFunction.checkPermission(commandSender);
             case RELOAD -> commandSender.hasPermission(RELOAD_PERMISSION_NODE);
         };
     }
@@ -220,6 +235,8 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
                             completeList = itemFunction.tabComplete(sender, command, alias, argsTruncated);
                     case XP ->
                             completeList = xpStoreFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case MAILER ->
+                            completeList = mailerFunction.tabComplete(sender, command, alias, argsTruncated);
                     case RELOAD -> {
                     }
                 }
@@ -263,6 +280,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         CHAT,
         REDBAG,
         ITEM,
-        XP
+        XP,
+        MAILER
     }
 }

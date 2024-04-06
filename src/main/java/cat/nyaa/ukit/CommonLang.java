@@ -19,4 +19,7 @@ public class CommonLang {
     public Text textFalse = Text.of("&cfalse");
     public Text buttonOn = Text.of("&7[&aon&7]");
     public Text buttonOff = Text.of("&7[&coff&7]");
+
+    public Text sqlErrorOccurred = Text.of("&7Database error occurred, please contact the server operator");
+    public Text playerNotFound = Text.of("&7There is no recorded player named {name}");
 }

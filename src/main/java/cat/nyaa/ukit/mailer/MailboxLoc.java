@@ -1,33 +1,36 @@
 package cat.nyaa.ukit.mailer;
 
+import java.util.UUID;
+
 public class MailboxLoc {
-    private int x;
-    private int y;
-    private int z;
-    private String world;
+    private int blockX;
+    private int blockY;
+    private int blockZ;
+    private UUID worldUUID;
 
-    public MailboxLoc(int x, int y, int z, String world) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.world = world;
+    public MailboxLoc(int blockX, int blockY, int blockZ, UUID worldUUID) {
+        this.blockX = blockX;
+        this.blockY = blockY;
+        this.blockZ = blockZ;
+        this.worldUUID = worldUUID;
     }
 
-    public MailboxLoc(){}
-
-    public int getX() {
-        return x;
+    public MailboxLoc() {
     }
 
-    public int getY() {
-        return y;
+    public int getBlockX() {
+        return blockX;
     }
 
-    public int getZ() {
-        return z;
+    public int getBlockY() {
+        return blockY;
     }
 
-    public String getWorld() {
-        return world;
+    public int getBlockZ() {
+        return blockZ;
+    }
+
+    public UUID getWorldUUID() {
+        return worldUUID;
     }
 }
