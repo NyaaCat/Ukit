@@ -1,6 +1,7 @@
 package cat.nyaa.ukit.lock;
 
 import cat.nyaa.ukit.SpigotLoader;
+import cat.nyaa.ukit.utils.EssentialsPluginUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
@@ -10,7 +11,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -18,13 +19,17 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class LockFunction implements SubCommandExecutor, SubTabCompleter {
+public class LockFunction implements SubCommandExecutor, SubTabCompleter, Listener {
     private final SpigotLoader pluginInstance;
     private final String LOCK_PERMISSION_NORMAL_NODE = "ukit.lock";
     private final String LOCK_PERMISSION_PRIVILEGE_NODE = "ukit.lock.admin";
@@ -91,21 +96,13 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                         return true;
                     case "info":
                         if(isLegacyLockedFrame(lookingFrame)){
-                            var itemComponent = ItemUtils.itemTextWithHover(lookingFrame.getItem());
-                            commandSender.sendMessage(pluginInstance.language.lockLang.lockFrameInfo.produceAsComponent(
-                                    Pair.of("owner", Bukkit.getOfflinePlayer(getLegacyLockFrameOwner(lookingFrame)).getName()),
-                                    Pair.of("item", itemComponent)
-                            ));
+                            commandSender.sendMessage(getLockFrameInfoMessage(getLegacyLockFrameOwner(lookingFrame), lookingFrame.getItem()));
                             return true;
                         }
                         if (!isLockedFrame(lookingFrame)) {
                             commandSender.sendMessage(pluginInstance.language.lockLang.notLockFrame.produce());
                         } else {
-                            var itemComponent = ItemUtils.itemTextWithHover(lookingFrame.getItem());
-                            commandSender.sendMessage(pluginInstance.language.lockLang.lockFrameInfo.produceAsComponent(
-                                    Pair.of("owner", Bukkit.getOfflinePlayer(getLockingOwner(lookingFrame)).getName()),
-                                    Pair.of("item", itemComponent)
-                            ));
+                            commandSender.sendMessage(getLockFrameInfoMessage(getLockingOwner(lookingFrame), lookingFrame.getItem()));
                         }
                         return true;
                     case "property":
@@ -166,7 +163,13 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                 Pair.of("toggleButtonTransparent", transparentButton),
                 Pair.of("toggleButtonDisplayName", glowingButton)
         );
+    }
 
+    private Component getLockFrameInfoMessage(UUID owner, ItemStack itemStack) {
+        return pluginInstance.language.lockLang.lockFrameInfo.produceAsComponent(
+                Pair.of("owner", EssentialsPluginUtils.nickWithHoverOrNormalName(owner) /*Bukkit.getOfflinePlayer(owner).getName()*/),
+                Pair.of("item", ItemUtils.itemTextWithHover(itemStack))
+        );
     }
 
     private void setUpLockFrame(ItemFrame itemFrame, UUID owner) {
@@ -253,6 +256,44 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                 return null;
             }
         }
+    }
+
+
+    @EventHandler
+    public void onRightClickItemFrame(PlayerInteractEntityEvent event) {
+        // right click on book: open book
+        // right click on normal item: show an info message
+        // right click with sneak: disregard
+        if (event.getPlayer().isSneaking()) return;
+        var entity = event.getRightClicked();
+
+        if (isLegacyLockedFrame(entity)) {
+            event.setCancelled(true);
+            var owner = getLegacyLockFrameOwner((ItemFrame) entity);
+            var item = ((ItemFrame) entity).getItem();
+
+            if (item.getType() == Material.WRITTEN_BOOK) {
+                event.getPlayer().openBook(item);
+                return;
+            }
+
+            event.getPlayer().sendMessage(getLockFrameInfoMessage(owner, item));
+            return;
+        }
+
+        if (isLockedFrame(entity)) {
+            event.setCancelled(true);
+            var owner = getLockingOwner((ItemFrame) entity);
+            var item = ((ItemFrame) entity).getItem();
+
+            if (item.getType() == Material.WRITTEN_BOOK) {
+                event.getPlayer().openBook(item);
+                return;
+            }
+
+            event.getPlayer().sendMessage(getLockFrameInfoMessage(owner, item));
+        }
+
     }
 
     @Override

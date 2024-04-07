@@ -1,9 +1,13 @@
 package cat.nyaa.ukit.utils;
 
 import net.ess3.api.IEssentials;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class EssentialsPluginUtils {
@@ -34,6 +38,15 @@ public class EssentialsPluginUtils {
             return false;
         }
         return essentials.getUser(uniqueID).getNickname() != null;
+    }
+
+    public static Object nickWithHoverOrNormalName(UUID uniqueID) {
+        return EssentialsPluginUtils.isEnabled() && EssentialsPluginUtils.hasNick(uniqueID) ?
+                LegacyComponentSerializer.legacySection().deserialize(EssentialsPluginUtils.getPlayerNickName(uniqueID))
+                        .hoverEvent(HoverEvent.showText(
+                                Component.text(Objects.requireNonNullElse(Bukkit.getOfflinePlayer(uniqueID).getName(), "unknown"))
+                        )) :
+                Bukkit.getOfflinePlayer(uniqueID).getName();
     }
 
     public static boolean isEnabled() {

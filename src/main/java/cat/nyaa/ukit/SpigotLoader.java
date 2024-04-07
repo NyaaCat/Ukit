@@ -119,6 +119,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         getServer().getPluginManager().registerEvents(chatFunction, this);
         getServer().getPluginManager().registerEvents(elytraFunction, this);
         getServer().getPluginManager().registerEvents(mailFunction, this);
+        getServer().getPluginManager().registerEvents(lockFunction, this);
 
         return true;
     }
