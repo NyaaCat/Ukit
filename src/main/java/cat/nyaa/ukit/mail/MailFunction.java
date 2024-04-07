@@ -1,14 +1,20 @@
-package cat.nyaa.ukit.mailer;
+package cat.nyaa.ukit.mail;
 
 import cat.nyaa.ukit.MainLang;
 import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import land.melon.lab.simplelanguageloader.utils.ItemUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Tag;
-import org.bukkit.block.*;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Container;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -25,18 +31,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MailerFunction implements SubCommandExecutor, SubTabCompleter, Listener {
+public class MailFunction implements SubCommandExecutor, SubTabCompleter, Listener {
 
-    public static final String MAILER_PERMISSION_NODE = "ukit.mailer";
+    public static final String MAIL_PERMISSION_NODE = "ukit.mail";
     private final SpigotLoader pluginInstance;
     private final MailboxLocRecorder locRecorder;
-    private final List<String> subCommands = List.of("mailbox", "sendto");
+    private final List<String> subCommands = List.of("box", "sendto");
     private final Map<UUID, ScheduledTask> mailboxSettingHoldTaskMap = new ConcurrentHashMap<>();
     private final boolean disabled;
 
-    public MailerFunction(SpigotLoader pluginInstance, File mailerRecordFile) throws SQLException, IOException {
+    public MailFunction(SpigotLoader pluginInstance, File mailRecordFile) throws SQLException, IOException {
         this.pluginInstance = pluginInstance;
-        locRecorder = new MailboxLocRecorder(mailerRecordFile);
+        locRecorder = new MailboxLocRecorder(mailRecordFile);
         disabled = pluginInstance.economyProvider == null;
     }
 
@@ -51,7 +57,7 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
             commandSender.sendMessage(pluginInstance.language.commonLang.playerOnlyCommand.produce());
             return true;
         }
-        if (!commandSender.hasPermission(MAILER_PERMISSION_NODE)) {
+        if (!commandSender.hasPermission(MAIL_PERMISSION_NODE)) {
             senderPlayer.sendMessage(pluginInstance.language.commonLang.permissionDenied.produce());
             return true;
         }
@@ -62,29 +68,29 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
 
         if (args.length < 2 || !subCommands.contains(args[0].toLowerCase())) {
             commandSender.sendMessage(
-                    getLanguage().mailerLang.mailerHelp.produce()
+                    getHelp()
             );
             return true;
         }
 
-        // /u mailer mailbox <set|clear>
-        if (args[0].equalsIgnoreCase("mailbox")) {
+        // /u mail mailbox <set|clear>
+        if (args[0].equalsIgnoreCase("box")) {
             if (args[1].equalsIgnoreCase("set")) {
                 var task = Bukkit.getGlobalRegionScheduler().runDelayed(pluginInstance, (scheduledTask) -> {
                     mailboxSettingHoldTaskMap.remove(senderPlayer.getUniqueId());
                     senderPlayer.sendMessage(
-                            getLanguage().mailerLang.setCancelled.produce()
+                            getLanguage().mailLang.setCancelled.produce()
                     );
                 }, 20 * 10);
                 mailboxSettingHoldTaskMap.put(senderPlayer.getUniqueId(), task);
                 commandSender.sendMessage(
-                        getLanguage().mailerLang.rightClickToSet.produce()
+                        getLanguage().mailLang.rightClickToSet.produce()
                 );
             } else if (args[1].equalsIgnoreCase("clear")) {
                 try {
                     locRecorder.deleteMailboxRecord(senderPlayer.getUniqueId());
                     commandSender.sendMessage(
-                            getLanguage().mailerLang.mailboxCleared.produce()
+                            getLanguage().mailLang.mailboxCleared.produce()
                     );
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -97,13 +103,13 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
                     var mailboxLoc = locRecorder.getMailboxLoc(senderPlayer.getUniqueId());
                     if (mailboxLoc == null) {
                         commandSender.sendMessage(
-                                getLanguage().mailerLang.mailboxNotSetYet.produce()
+                                getLanguage().mailLang.mailboxNotSetYet.produce()
                         );
                     } else {
                         var world = Bukkit.getWorld(mailboxLoc.getWorldUUID());
-                        var worldName = world == null ? "invalid" : world.getName();
+                        var worldName = world == null ? Component.text("invalid", NamedTextColor.RED, TextDecoration.STRIKETHROUGH) : world.getName();
                         commandSender.sendMessage(
-                                getLanguage().mailerLang.mailboxInfo.produce(
+                                getLanguage().mailLang.mailboxInfo.produceAsComponent(
                                         Pair.of("x", mailboxLoc.getBlockX()),
                                         Pair.of("y", mailboxLoc.getBlockY()),
                                         Pair.of("z", mailboxLoc.getBlockZ()),
@@ -119,14 +125,16 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
                 }
             } else {
                 commandSender.sendMessage(
-                        getLanguage().mailerLang.mailerHelp.produce()
+                        getHelp()
                 );
             }
         } else /*args[1].equalsIgnoreCase("sendto")*/ {
             var targetPlayer = Bukkit.getOfflinePlayerIfCached(args[1]);
             if (targetPlayer == null) {
                 commandSender.sendMessage(
-                        getLanguage().commonLang.playerNotFound.produce()
+                        getLanguage().commonLang.playerNotFound.produce(
+                                Pair.of("name", args[1])
+                        )
                 );
                 return true;
             }
@@ -134,33 +142,7 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
                 var mailboxLoc = locRecorder.getMailboxLoc(targetPlayer.getUniqueId());
                 if (mailboxLoc == null) {
                     commandSender.sendMessage(
-                            getLanguage().mailerLang.playerNotSetMailboxYet.produce(
-                                    Pair.of("player", targetPlayer.getName())
-                            )
-                    );
-                    return true;
-                }
-                var world = Bukkit.getWorld(mailboxLoc.getWorldUUID());
-                if (world == null) {
-                    commandSender.sendMessage(
-                            getLanguage().mailerLang.mailboxNotAvail.produce(
-                                    Pair.of("player", targetPlayer.getName())
-                            )
-                    );
-                    return true;
-                }
-                var blockState = world.getBlockAt(mailboxLoc.getBlockX(), mailboxLoc.getBlockY(), mailboxLoc.getBlockZ()).getState();
-                if (!isValidMailbox(blockState)) {
-                    commandSender.sendMessage(
-                            getLanguage().mailerLang.mailboxNotAvail.produce(
-                                    Pair.of("player", targetPlayer.getName())
-                            )
-                    );
-                    return true;
-                }
-                if (((Container) blockState).getInventory().firstEmpty() == -1) {
-                    commandSender.sendMessage(
-                            getLanguage().mailerLang.mailboxFull.produce(
+                            getLanguage().mailLang.playerNotSetMailboxYet.produce(
                                     Pair.of("player", targetPlayer.getName())
                             )
                     );
@@ -169,15 +151,41 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
                 var itemInHand = senderPlayer.getInventory().getItemInMainHand();
                 if (itemInHand.getType().isAir()) {
                     commandSender.sendMessage(
-                            getLanguage().mailerLang.noItemInHand.produce()
+                            getLanguage().mailLang.noItemInHand.produce()
+                    );
+                    return true;
+                }
+                var world = Bukkit.getWorld(mailboxLoc.getWorldUUID());
+                if (world == null) {
+                    commandSender.sendMessage(
+                            getLanguage().mailLang.mailboxNotAvail.produce(
+                                    Pair.of("player", targetPlayer.getName())
+                            )
+                    );
+                    return true;
+                }
+                var blockState = world.getBlockAt(mailboxLoc.getBlockX(), mailboxLoc.getBlockY(), mailboxLoc.getBlockZ()).getState();
+                if (!isValidMailbox(blockState)) {
+                    commandSender.sendMessage(
+                            getLanguage().mailLang.mailboxNotAvail.produce(
+                                    Pair.of("player", targetPlayer.getName())
+                            )
+                    );
+                    return true;
+                }
+                if (((Container) blockState).getInventory().firstEmpty() == -1) {
+                    commandSender.sendMessage(
+                            getLanguage().mailLang.mailboxFull.produce(
+                                    Pair.of("player", targetPlayer.getName())
+                            )
                     );
                     return true;
                 }
                 var cost = Tag.SHULKER_BOXES.isTagged(itemInHand.getType()) ?
-                        pluginInstance.config.mailerConfig.mailShulkerBoxCost : pluginInstance.config.mailerConfig.mailItemCost;
+                        pluginInstance.config.mailConfig.mailShulkerBoxCost : pluginInstance.config.mailConfig.mailItemCost;
                 if (!pluginInstance.economyProvider.withdrawPlayer(senderPlayer.getUniqueId(), cost)) {
                     commandSender.sendMessage(
-                            getLanguage().mailerLang.moneyNotEnough.produce(
+                            getLanguage().mailLang.moneyNotEnough.produce(
                                     Pair.of("amount", cost),
                                     Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
                             )
@@ -185,14 +193,16 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
                     return true;
                 }
                 var inventory = ((Container) blockState).getInventory();
-                inventory.addItem(itemInHand);
+                inventory.addItem(itemInHand.clone());
                 senderPlayer.getInventory().setItemInMainHand(null);
                 pluginInstance.economyProvider.depositSystemVault(cost);
 
                 commandSender.sendMessage(
-                        getLanguage().mailerLang.itemSent.produce(
+                        getLanguage().mailLang.itemSent.produceAsComponent(
+                                Pair.of("item", ItemUtils.itemTextWithHover(itemInHand)),
+                                Pair.of("amount", itemInHand.getAmount()),
                                 Pair.of("player", targetPlayer.getName()),
-                                Pair.of("amount", cost),
+                                Pair.of("cost", cost),
                                 Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())));
 
             } catch (SQLException e) {
@@ -218,29 +228,29 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
         mailboxSettingHoldTaskMap.remove(event.getPlayer().getUniqueId());
         event.setCancelled(true);
 
-        if (!pluginInstance.economyProvider.withdrawPlayer(event.getPlayer().getUniqueId(), pluginInstance.config.mailerConfig.setMailboxCost)) {
+        if (!pluginInstance.economyProvider.withdrawPlayer(event.getPlayer().getUniqueId(), pluginInstance.config.mailConfig.setMailboxCost)) {
             event.getPlayer().sendMessage(
-                    getLanguage().mailerLang.moneyNotEnough.produce(
-                            Pair.of("amount", pluginInstance.config.mailerConfig.setMailboxCost),
+                    getLanguage().mailLang.moneyNotEnough.produce(
+                            Pair.of("amount", pluginInstance.config.mailConfig.setMailboxCost),
                             Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
                     )
             );
             event.getPlayer().sendMessage(
-                    getLanguage().mailerLang.setCancelled.produce()
+                    getLanguage().mailLang.setCancelled.produce()
             );
             return;
         }
-        pluginInstance.economyProvider.depositSystemVault(pluginInstance.config.mailerConfig.setMailboxCost);
+        pluginInstance.economyProvider.depositSystemVault(pluginInstance.config.mailConfig.setMailboxCost);
 
         try {
             locRecorder.setMailboxLoc(event.getPlayer().getUniqueId(), new MailboxLoc(block.getX(), block.getY(), block.getZ(), block.getWorld().getUID()));
             event.getPlayer().sendMessage(
-                    getLanguage().mailerLang.mailboxSet.produce(
+                    getLanguage().mailLang.mailboxSet.produce(
                             Pair.of("x", block.getX()),
                             Pair.of("y", block.getY()),
                             Pair.of("z", block.getZ()),
                             Pair.of("world", block.getWorld().getName()),
-                            Pair.of("amount", pluginInstance.config.mailerConfig.setMailboxCost),
+                            Pair.of("amount", pluginInstance.config.mailConfig.setMailboxCost),
                             Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
                     )
             );
@@ -255,7 +265,11 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
 
     @Override
     public String getHelp() {
-        return getLanguage().mailerLang.mailerHelp.produce();
+        return getLanguage().mailLang.mailHelp.produce(
+                Pair.of("boxCost", pluginInstance.config.mailConfig.mailShulkerBoxCost),
+                Pair.of("normalCost", pluginInstance.config.mailConfig.mailItemCost),
+                Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())
+        );
     }
 
     @Override
@@ -266,7 +280,7 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
         if (args.length <= 1) {
             return subCommands;
         } else {
-            if (args[0].equalsIgnoreCase("mailbox")) {
+            if (args[0].equalsIgnoreCase("box")) {
                 if (args.length == 2) {
                     return List.of("set", "clear", "info");
                 } else {
@@ -282,10 +296,10 @@ public class MailerFunction implements SubCommandExecutor, SubTabCompleter, List
 
     @Override
     public boolean checkPermission(CommandSender commandSender) {
-        return commandSender.hasPermission(MAILER_PERMISSION_NODE);
+        return commandSender.hasPermission(MAIL_PERMISSION_NODE);
     }
 
     private boolean isValidMailbox(BlockState blockState) {
-        return blockState instanceof Chest || blockState instanceof Barrel || blockState instanceof ShulkerBox;
+        return blockState instanceof Container && !(blockState instanceof ShulkerBox);
     }
 }

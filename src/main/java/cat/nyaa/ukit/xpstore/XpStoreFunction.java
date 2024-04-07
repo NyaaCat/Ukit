@@ -5,6 +5,7 @@ import cat.nyaa.ukit.utils.ExperienceUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
+import land.melon.lab.simplelanguageloader.utils.ItemUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -61,7 +62,9 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
             senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.noItemInHand.produce());
             return true;
         } else if (itemInHandPair.value().getType() != Material.EXPERIENCE_BOTTLE) {
-            senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notExpBottle.produce());
+            senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notExpBottle.produceAsComponent(
+                    Pair.of("item", ItemUtils.itemTextWithHover(itemInHandPair.value()))
+            ));
             return true;
         }
         var config = pluginInstance.config.xpStoreConfig;

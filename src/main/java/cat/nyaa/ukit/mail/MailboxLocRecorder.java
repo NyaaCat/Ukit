@@ -1,4 +1,4 @@
-package cat.nyaa.ukit.mailer;
+package cat.nyaa.ukit.mail;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

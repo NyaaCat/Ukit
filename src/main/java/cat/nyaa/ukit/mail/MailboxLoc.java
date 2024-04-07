@@ -1,4 +1,4 @@
-package cat.nyaa.ukit.mailer;
+package cat.nyaa.ukit.mail;
 
 import java.util.UUID;
 
