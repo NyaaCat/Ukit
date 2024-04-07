@@ -41,7 +41,7 @@ public class ShowFunction implements SubCommandExecutor, SubTabCompleter {
         var message = (itemInHand.getAmount() == 1 ? pluginInstance.language.showLang.showMessageSingle : pluginInstance.language.showLang.showMessageMultiple).produceAsComponent(
                 Pair.of("player",
                         EssentialsPluginUtils.isEnabled() && EssentialsPluginUtils.hasNick(senderPlayer.getUniqueId()) ?
-                                Component.text(EssentialsPluginUtils.getPlayerNickName(senderPlayer.getUniqueId()))
+                                LegacyComponentSerializer.legacySection().deserialize(EssentialsPluginUtils.getPlayerNickName(senderPlayer.getUniqueId()))
                                         .hoverEvent(HoverEvent.showText(
                                                 Component.text(senderPlayer.getName())
                                         )) :

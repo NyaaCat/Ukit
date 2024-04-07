@@ -194,20 +194,26 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
         if (entity == null) return false;
         if (entity.getType() != EntityType.ITEM_FRAME) return false;
         var itemFrame = (ItemFrame) entity;
+        var item = itemFrame.getItem();
+        if (!item.hasItemMeta()) return false;
+        var pdc = item.getItemMeta().getPersistentDataContainer();
 
-        return itemFrame.getPersistentDataContainer().has(LEGACY_METADATA_UID) && itemFrame.isFixed();
+        return pdc.has(LEGACY_METADATA_UID) && itemFrame.isFixed();
     }
 
     private void removeLegacyLockedFrame(ItemFrame itemFrame) {
         itemFrame.setItem(null);
         itemFrame.setFixed(false);
-        itemFrame.getPersistentDataContainer().remove(LEGACY_METADATA_UID);
-        itemFrame.getPersistentDataContainer().remove(LEGACY_METADATA_DESC);
-        itemFrame.getPersistentDataContainer().remove(LEGACY_METADATA_NAME);
     }
 
     private UUID getLegacyLockFrameOwner(ItemFrame itemFrame) {
-        var uuidString = itemFrame.getPersistentDataContainer().get(LEGACY_METADATA_UID, PersistentDataType.STRING);
+        if (itemFrame == null)
+            return ZERO_UUID;
+        var item = itemFrame.getItem();
+        if (!item.hasItemMeta())
+            return ZERO_UUID;
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        var uuidString = pdc.get(LEGACY_METADATA_UID, PersistentDataType.STRING);
         if (uuidString != null)
             return UUID.fromString(uuidString);
         else
