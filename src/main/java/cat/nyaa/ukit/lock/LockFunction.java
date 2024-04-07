@@ -5,7 +5,6 @@ import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
 import land.melon.lab.simplelanguageloader.utils.ItemUtils;
-import land.melon.lab.simplelanguageloader.utils.LocaleUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -16,6 +15,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
@@ -29,6 +29,9 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
     private final String LOCK_PERMISSION_NORMAL_NODE = "ukit.lock";
     private final String LOCK_PERMISSION_PRIVILEGE_NODE = "ukit.lock.admin";
     private final NamespacedKey LOCK_METADATA_KEY;
+    private final NamespacedKey LEGACY_METADATA_UID = new NamespacedKey("nyaautils", "exhibitionkeyname");
+    private final NamespacedKey LEGACY_METADATA_DESC = new NamespacedKey("nyaautils", "exhibitionkeyuid");
+    private final NamespacedKey LEGACY_METADATA_NAME = new NamespacedKey("nyaautils", "exhibitionkeydescription");
     private final UUID ZERO_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
     private final List<String> subCommands = List.of("info", "setup", "remove", "property");
 
@@ -69,6 +72,14 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                         }
                         return true;
                     case "remove":
+                        if (isLegacyLockedFrame(lookingFrame)) {
+                            if (!player.getUniqueId().equals(getLegacyLockFrameOwner(lookingFrame)) && !commandSender.hasPermission(LOCK_PERMISSION_PRIVILEGE_NODE)) {
+                                commandSender.sendMessage(pluginInstance.language.lockLang.cantOperateOthers.produce());
+                            } else {
+                                removeLegacyLockedFrame(lookingFrame);
+                                commandSender.sendMessage(pluginInstance.language.lockLang.removeSuccessfully.produce());
+                            }
+                        }
                         if (!isLockedFrame(lookingFrame)) {
                             commandSender.sendMessage(pluginInstance.language.lockLang.notLockFrame.produce());
                         } else if (!getLockingOwner(lookingFrame).equals(player.getUniqueId()) && !commandSender.hasPermission(LOCK_PERMISSION_PRIVILEGE_NODE)) {
@@ -79,6 +90,14 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
                         }
                         return true;
                     case "info":
+                        if(isLegacyLockedFrame(lookingFrame)){
+                            var itemComponent = ItemUtils.itemTextWithHover(lookingFrame.getItem());
+                            commandSender.sendMessage(pluginInstance.language.lockLang.lockFrameInfo.produceAsComponent(
+                                    Pair.of("owner", Bukkit.getOfflinePlayer(getLegacyLockFrameOwner(lookingFrame)).getName()),
+                                    Pair.of("item", itemComponent)
+                            ));
+                            return true;
+                        }
                         if (!isLockedFrame(lookingFrame)) {
                             commandSender.sendMessage(pluginInstance.language.lockLang.notLockFrame.produce());
                         } else {
@@ -169,6 +188,30 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter {
     private boolean isLockedFrame(Entity entity) {
         if (entity == null) return false;
         return entity.getPersistentDataContainer().has(LOCK_METADATA_KEY, PersistentDataType.STRING);
+    }
+
+    private boolean isLegacyLockedFrame(Entity entity) {
+        if (entity == null) return false;
+        if (entity.getType() != EntityType.ITEM_FRAME) return false;
+        var itemFrame = (ItemFrame) entity;
+
+        return itemFrame.getPersistentDataContainer().has(LEGACY_METADATA_UID) && itemFrame.isFixed();
+    }
+
+    private void removeLegacyLockedFrame(ItemFrame itemFrame) {
+        itemFrame.setItem(null);
+        itemFrame.setFixed(false);
+        itemFrame.getPersistentDataContainer().remove(LEGACY_METADATA_UID);
+        itemFrame.getPersistentDataContainer().remove(LEGACY_METADATA_DESC);
+        itemFrame.getPersistentDataContainer().remove(LEGACY_METADATA_NAME);
+    }
+
+    private UUID getLegacyLockFrameOwner(ItemFrame itemFrame) {
+        var uuidString = itemFrame.getPersistentDataContainer().get(LEGACY_METADATA_UID, PersistentDataType.STRING);
+        if (uuidString != null)
+            return UUID.fromString(uuidString);
+        else
+            return ZERO_UUID;
     }
 
     private UUID getLockingOwner(ItemFrame itemFrame) {
