@@ -75,6 +75,14 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         if (redbagFunction != null) {
             redbagFunction.refundAll();
         }
+        if (mailFunction != null) {
+            try {
+                mailFunction.releaseResource();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                logger.severe("failed to release sql resource for mailboxes. It may not work as intend after the plugin reloading");
+            }
+        }
     }
 
     public boolean reload() {

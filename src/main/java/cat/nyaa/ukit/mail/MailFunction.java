@@ -306,4 +306,8 @@ public class MailFunction implements SubCommandExecutor, SubTabCompleter, Listen
     private boolean isValidMailbox(BlockState blockState) {
         return blockState instanceof Container && !(blockState instanceof ShulkerBox);
     }
+
+    public void releaseResource() throws SQLException {
+        locRecorder.close();
+    }
 }
