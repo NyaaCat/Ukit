@@ -14,10 +14,12 @@ public class LockLang {
     public Text notItemFrame = Text.of("&cThe entity you are looking at is not an item frame.");
     public Text alreadyLockedFrame = Text.of("&cThe entity you are looking at is already a locked frame.");
     public Text setupSuccessfully = Text.of("&7Successfully setup a lock frame.");
+    public Text lockCreationDateStamp = Text.of("&r&8Created at &o{year}/{month}/{day}");
     public Text emptyFrameNotAllowed = Text.of("&cYou can't setup an empty item frame as lock frame.");
     public Text removeSuccessfully = Text.of("&7Successfully removed lock frame.");
     public Text cantOperateOthers = Text.of("&cIs is not your lock frame.");
     public Text notLockFrame = Text.of("&cThis item frame is not an lock frame.");
+    public Text unsupportedLegacy = Text.of("&cThis item frame is a legacy one and doesn't support this operation.");
     public Text invalidProperty = Text.of("&c{property} is not a valid property.");
     public Text lockFrameInfo = Text.of(
             "&7Lock Frame Info:",

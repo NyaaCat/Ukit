@@ -10,6 +10,7 @@ import land.melon.lab.simplelanguageloader.utils.Pair;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -25,24 +26,22 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class LockFunction implements SubCommandExecutor, SubTabCompleter, Listener {
     private final SpigotLoader pluginInstance;
     private final String LOCK_PERMISSION_NORMAL_NODE = "ukit.lock";
     private final String LOCK_PERMISSION_PRIVILEGE_NODE = "ukit.lock.admin";
     private final NamespacedKey LOCK_METADATA_KEY;
+    private final NamespacedKey LOCK_CREATION_TIME_ON_ITEM_KEY;
     private final NamespacedKey LEGACY_METADATA_UID = new NamespacedKey("nyaautils", "exhibitionkeyname");
-    private final NamespacedKey LEGACY_METADATA_DESC = new NamespacedKey("nyaautils", "exhibitionkeyuid");
-    private final NamespacedKey LEGACY_METADATA_NAME = new NamespacedKey("nyaautils", "exhibitionkeydescription");
     private final UUID ZERO_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
     private final List<String> subCommands = List.of("info", "setup", "remove", "property");
 
     public LockFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
         LOCK_METADATA_KEY = new NamespacedKey(pluginInstance, "LOCK_OWNER");
+        LOCK_CREATION_TIME_ON_ITEM_KEY = new NamespacedKey(pluginInstance, "LOCK_CREATION_TIME");
     }
 
     @Override
@@ -84,6 +83,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter, Listen
                                 removeLegacyLockedFrame(lookingFrame);
                                 commandSender.sendMessage(pluginInstance.language.lockLang.removeSuccessfully.produce());
                             }
+                            return true;
                         }
                         if (!isLockedFrame(lookingFrame)) {
                             commandSender.sendMessage(pluginInstance.language.lockLang.notLockFrame.produce());
@@ -108,6 +108,9 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter, Listen
                     case "property":
                         if (args.length == 2) {
                             return false;
+                        } else if (isLegacyLockedFrame(lookingFrame)) {
+                            commandSender.sendMessage(pluginInstance.language.lockLang.unsupportedLegacy.produce());
+                            return true;
                         } else if (!isLockedFrame(lookingFrame)) {
                             commandSender.sendMessage(pluginInstance.language.lockLang.notLockFrame.produce());
                             return true;
@@ -176,7 +179,20 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter, Listen
         itemFrame.setInvulnerable(true);
         itemFrame.setItemDropChance(0);
         itemFrame.getPersistentDataContainer().set(LOCK_METADATA_KEY, PersistentDataType.STRING, owner.toString());
-        itemFrame.getWorld().dropItem(itemFrame.getLocation(), itemFrame.getItem());
+        var item = itemFrame.getItem();
+        itemFrame.getWorld().dropItem(itemFrame.getLocation(), item.clone());
+        var loreList = Objects.requireNonNullElse(item.lore(), new ArrayList<Component>());
+        loreList.add(
+                Component.text().decoration(TextDecoration.ITALIC, false).append(pluginInstance.language.lockLang.lockCreationDateStamp.produceAsComponent(
+                        Pair.of("year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR))),
+                        Pair.of("month", String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1)),
+                        Pair.of("day", String.valueOf(Calendar.getInstance().get(Calendar.DAY_OF_MONTH))))).asComponent()
+        );
+        item.lore(loreList);
+        var itemMeta = item.getItemMeta();
+        itemMeta.getPersistentDataContainer().set(LOCK_CREATION_TIME_ON_ITEM_KEY, PersistentDataType.LONG, System.currentTimeMillis());
+        item.setItemMeta(itemMeta);
+        itemFrame.setItem(item);
     }
 
     private void removeLockedFrame(ItemFrame itemFrame) {
