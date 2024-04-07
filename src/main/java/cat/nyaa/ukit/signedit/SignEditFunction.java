@@ -1,13 +1,13 @@
 package cat.nyaa.ukit.signedit;
 
 import cat.nyaa.ukit.SpigotLoader;
+import cat.nyaa.ukit.utils.LockettePluginUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
 import land.melon.lab.simplelanguageloader.utils.ColorConverter;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import land.melon.lab.simplelanguageloader.utils.TextUtils;
-import me.crafter.mc.lockettepro.LocketteProAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
@@ -29,7 +29,6 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
     private final String SIGNEDIT_PERMISSION_NODE = "ukit.signedit";
     private final List<String> subCommands = List.of("1", "2", "3", "4");
 
-    private final boolean hasLockettePro = Bukkit.getServer().getPluginManager().getPlugin("LockettePro") != null;
 
     public SignEditFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
@@ -52,11 +51,10 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                 return true;
             }
             if (targetBlock.getState() instanceof Sign sign) {
-                if (hasLockettePro) {
-                    if (LocketteProAPI.isLockSignOrAdditionalSign(targetBlock) || LocketteProAPI.isLocked(targetBlock)) {
-                        commandSender.sendMessage(pluginInstance.language.signEditLang.cantModifyLockSign.produce());
-                        return true;
-                    }
+                // fail-safe
+                if (LockettePluginUtils.isLockSign(targetBlock)) {
+                    commandSender.sendMessage(pluginInstance.language.signEditLang.cantModifyLockSign.produce());
+                    return true;
                 }
                 int line;
                 try {
@@ -139,10 +137,8 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                         return List.of();
 
                     if (targetBlock.getState() instanceof Sign sign) {
-                        if (hasLockettePro) {
-                            if (LocketteProAPI.isLockSignOrAdditionalSign(targetBlock) || LocketteProAPI.isLocked(targetBlock)) {
-                                return List.of();
-                            }
+                        if (LockettePluginUtils.isLockSign(targetBlock)) {
+                            return List.of();
                         }
                         var signSide = Utils.getSignSideLookingAt(player, sign);
 

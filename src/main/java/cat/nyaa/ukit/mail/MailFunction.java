@@ -2,6 +2,7 @@ package cat.nyaa.ukit.mail;
 
 import cat.nyaa.ukit.MainLang;
 import cat.nyaa.ukit.SpigotLoader;
+import cat.nyaa.ukit.utils.LockettePluginUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
@@ -223,6 +224,9 @@ public class MailFunction implements SubCommandExecutor, SubTabCompleter, Listen
         var block = event.getClickedBlock();
         if (block == null) return;
         if (!isValidMailbox(block.getState())) return;
+        if (LockettePluginUtils.isLockedBlock(block) &&
+                !LockettePluginUtils.isBlockOwner(event.getPlayer(), block))
+            return;
 
         mailboxSettingHoldTaskMap.get(event.getPlayer().getUniqueId()).cancel();
         mailboxSettingHoldTaskMap.remove(event.getPlayer().getUniqueId());
