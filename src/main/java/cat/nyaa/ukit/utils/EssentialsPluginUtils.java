@@ -9,14 +9,6 @@ import java.util.UUID;
 public class EssentialsPluginUtils {
 
     static {
-        setup();
-    }
-
-    private static boolean enabled;
-    private static IEssentials essentials;
-
-
-    public static void setup() {
         Plugin plugin = Bukkit.getPluginManager().getPlugin("Essentials");
         if (plugin == null) {
             enabled = false;
@@ -25,6 +17,9 @@ public class EssentialsPluginUtils {
             enabled = true;
         }
     }
+
+    private static boolean enabled;
+    private static IEssentials essentials;
 
     public static String getPlayerNickName(UUID uniqueID) {
         if (!enabled) {
@@ -44,6 +39,5 @@ public class EssentialsPluginUtils {
     public static boolean isEnabled() {
         return enabled;
     }
-
 
 }

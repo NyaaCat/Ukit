@@ -1,6 +1,7 @@
 package cat.nyaa.ukit.show;
 
 import cat.nyaa.ukit.SpigotLoader;
+import cat.nyaa.ukit.utils.EssentialsDiscordRelayUtils;
 import cat.nyaa.ukit.utils.EssentialsPluginUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
@@ -8,6 +9,7 @@ import land.melon.lab.simplelanguageloader.utils.ItemUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -35,20 +37,26 @@ public class ShowFunction implements SubCommandExecutor, SubTabCompleter {
             return true;
         }
         var itemInHand = senderPlayer.getInventory().getItemInMainHand();
-        pluginInstance.getServer().broadcast(
-                (itemInHand.getAmount() == 1 ? pluginInstance.language.showLang.showMessageSingle : pluginInstance.language.showLang.showMessageMultiple).produceAsComponent(
-                        Pair.of("player",
-                                EssentialsPluginUtils.isEnabled() && EssentialsPluginUtils.hasNick(senderPlayer.getUniqueId()) ?
-                                        Component.text(EssentialsPluginUtils.getPlayerNickName(senderPlayer.getUniqueId()))
-                                                .hoverEvent(HoverEvent.showText(
-                                                        Component.text(senderPlayer.getName())
-                                                )) :
-                                        senderPlayer.getName()
-                        ),
-                        Pair.of("item", ItemUtils.itemTextWithHover(itemInHand)),
-                        Pair.of("amount", itemInHand.getAmount())
-                )
+
+        var message = (itemInHand.getAmount() == 1 ? pluginInstance.language.showLang.showMessageSingle : pluginInstance.language.showLang.showMessageMultiple).produceAsComponent(
+                Pair.of("player",
+                        EssentialsPluginUtils.isEnabled() && EssentialsPluginUtils.hasNick(senderPlayer.getUniqueId()) ?
+                                Component.text(EssentialsPluginUtils.getPlayerNickName(senderPlayer.getUniqueId()))
+                                        .hoverEvent(HoverEvent.showText(
+                                                Component.text(senderPlayer.getName())
+                                        )) :
+                                senderPlayer.getName()
+                ),
+                Pair.of("item", ItemUtils.itemTextWithHover(itemInHand)),
+                Pair.of("amount", itemInHand.getAmount())
         );
+
+        pluginInstance.getServer().broadcast(message);
+        // fail-safe
+        if (pluginInstance.config.showConfig.enableDiscordRelay) {
+            EssentialsDiscordRelayUtils.broadCastMessageToChat(pluginInstance.config.showConfig.discordRelayPrefix + LegacyComponentSerializer.legacySection().serialize(message));
+
+        }
         return true;
     }
 
