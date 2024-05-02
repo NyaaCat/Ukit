@@ -206,6 +206,23 @@ public class MailFunction implements SubCommandExecutor, SubTabCompleter, Listen
                                 Pair.of("cost", cost),
                                 Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())));
 
+                var receiverMessage = getLanguage().mailLang.itemReceived.produceAsComponent(
+                        Pair.of("player", senderPlayer.getName()),
+                        Pair.of("item", ItemUtils.itemTextWithHover(itemInHand)),
+                        Pair.of("amount", itemInHand.getAmount())
+                );
+
+                if (targetPlayer.isOnline()) {
+                    targetPlayer.getPlayer().sendMessage(receiverMessage);
+                } else {
+                    try {
+                        var serviceSenderName = getLanguage().mailLang.serviceName.produceAsComponent();
+                        pluginInstance.newLoginPush(targetPlayer.getUniqueId(), receiverMessage, serviceSenderName);
+                    } catch (SQLException | IllegalStateException ignore) {
+                        ignore.printStackTrace();
+                    }
+                }
+
             } catch (SQLException e) {
                 e.printStackTrace();
                 commandSender.sendMessage(

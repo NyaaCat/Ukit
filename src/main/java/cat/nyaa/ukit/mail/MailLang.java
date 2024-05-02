@@ -16,9 +16,11 @@ public class MailLang {
     public Text mailboxNotSetYet = Text.of("&7Your mailbox is not set yet!");
     public Text setCancelled = Text.of("&7Cancelled to set a mailbox");
     public Text itemSent = Text.of("&7{item} &rx {amount} sent to {player}&7's mailbox, costs {cost}{currencyUnit}&7");
+    public Text itemReceived = Text.of("&7{player} sent {item} &rx {amount} &7to you!");
     public Text noItemInHand = Text.of("&7You have no item in your main hand!");
     public Text moneyNotEnough = Text.of("&7You need at least {amount}{currencyUnit}&7 to compete this operation");
     public Text playerNotSetMailboxYet = Text.of("&7{player} has not set a mailbox yet");
     public Text mailboxNotAvail = Text.of("&7{player}'s mailbox is not available for now");
     public Text mailboxFull = Text.of("&7{player}'s mailbox is full and can't accept new items");
+    public Text serviceName = Text.of("&7Mailbox Service");
 }

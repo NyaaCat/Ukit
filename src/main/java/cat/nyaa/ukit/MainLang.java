@@ -3,6 +3,7 @@ package cat.nyaa.ukit;
 import cat.nyaa.ukit.chat.ChatLang;
 import cat.nyaa.ukit.item.ItemLang;
 import cat.nyaa.ukit.lock.LockLang;
+import cat.nyaa.ukit.loginpush.LoginPushLang;
 import cat.nyaa.ukit.mail.MailLang;
 import cat.nyaa.ukit.redbag.RedbagLang;
 import cat.nyaa.ukit.show.ShowLang;
@@ -20,6 +21,6 @@ public class MainLang {
     public RedbagLang redbagLang = new RedbagLang();
     public ItemLang itemLang = new ItemLang();
     public XpStoreLang xpStoreLang = new XpStoreLang();
-
     public MailLang mailLang = new MailLang();
+    public LoginPushLang loginPushLang = new LoginPushLang();
 }
