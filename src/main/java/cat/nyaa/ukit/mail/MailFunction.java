@@ -2,6 +2,7 @@ package cat.nyaa.ukit.mail;
 
 import cat.nyaa.ukit.MainLang;
 import cat.nyaa.ukit.SpigotLoader;
+import cat.nyaa.ukit.utils.EssentialsPluginUtils;
 import cat.nyaa.ukit.utils.LockettePluginUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
@@ -207,7 +208,7 @@ public class MailFunction implements SubCommandExecutor, SubTabCompleter, Listen
                                 Pair.of("currencyUnit", pluginInstance.economyProvider.currencyNamePlural())));
 
                 var receiverMessage = getLanguage().mailLang.itemReceived.produceAsComponent(
-                        Pair.of("player", senderPlayer.getName()),
+                        Pair.of("player", EssentialsPluginUtils.nickWithHoverOrNormalName(senderPlayer.getUniqueId())),
                         Pair.of("item", ItemUtils.itemTextWithHover(itemInHand)),
                         Pair.of("amount", itemInHand.getAmount())
                 );
