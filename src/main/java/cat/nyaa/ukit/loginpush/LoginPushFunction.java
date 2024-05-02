@@ -4,7 +4,7 @@ import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import land.melon.lab.simplelanguageloader.utils.Pair;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -41,21 +41,36 @@ public class LoginPushFunction implements Listener, SubCommandExecutor, SubTabCo
             senderPlayer.sendMessage(pluginInstance.language.commonLang.permissionDenied.produce());
             return true;
         }
-        senderPlayer.sendMessage(pluginInstance.language.loginPushLang.login_push_title.produce());
         var dateFormat = new SimpleDateFormat(pluginInstance.language.loginPushLang.push_timestamp_format.produce());
+
         try {
-            loginPushRecorder.getLoginPush(senderPlayer.getUniqueId()).forEach(loginPush -> {
+            var loginPushes = loginPushRecorder.getLoginPush(senderPlayer.getUniqueId());
+            if (loginPushes.isEmpty()) {
+                senderPlayer.sendMessage(pluginInstance.language.loginPushLang.no_new_push.produce());
+                return true;
+            }
+
+            senderPlayer.sendMessage(pluginInstance.language.loginPushLang.login_push_title.produce());
+            loginPushes.forEach(loginPush -> {
+                var line1 = pluginInstance.language.loginPushLang.push_message_line1.produceAsComponent(
+                        Pair.of("message", loginPush.content()),
+                        Pair.of("time", dateFormat.format(loginPush.time())),
+                        Pair.of("sender", loginPush.sender())
+                );
+                var line2 = pluginInstance.language.loginPushLang.push_message_line2.produceAsComponent(
+                        Pair.of("message", loginPush.content()),
+                        Pair.of("time", dateFormat.format(loginPush.time())),
+                        Pair.of("sender", loginPush.sender())
+                );
                 senderPlayer.sendMessage(
-                        loginPush.content().appendNewline().append(
-                                LegacyComponentSerializer.legacySection().deserialize(dateFormat.format(loginPush.time())
-                                )
-                        ));
+                        Component.text().append(line1).appendNewline().append(line2));
             });
+            loginPushRecorder.deleteLoginPush(loginPushes.stream().map(LoginPush::id).toList());
+            senderPlayer.sendMessage(pluginInstance.language.loginPushLang.login_push_end.produce());
         } catch (SQLException e) {
+            e.printStackTrace();
             commandSender.sendMessage(pluginInstance.language.commonLang.sqlErrorOccurred.produce());
-            return true;
         }
-        senderPlayer.sendMessage(pluginInstance.language.loginPushLang.login_push_end.produce());
         return true;
     }
 

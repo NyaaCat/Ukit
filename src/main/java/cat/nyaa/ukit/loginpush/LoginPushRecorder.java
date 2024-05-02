@@ -22,7 +22,7 @@ public class LoginPushRecorder {
         this.recordFile = recordFile;
         this.connection = DriverManager.getConnection("jdbc:sqlite:" + recordFile.getAbsolutePath());
         try (var statement = connection.createStatement()) {
-            statement.execute("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (msg_id INTEGER PRIMARY KEY AUTOINCREMENT, receiverUniqueID TEXT, timestamp INTEGER, raw_message TEXT)");
+            statement.execute("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (msg_id INTEGER PRIMARY KEY AUTOINCREMENT, receiverUniqueID TEXT, timestamp INTEGER, raw_message TEXT, sender_name TEXT)");
             //create an index on receiverUniqueID
             statement.execute("CREATE INDEX IF NOT EXISTS ReceiverUniqueIDIndex ON " + TABLE_NAME + " (receiverUniqueID)");
         }
@@ -37,7 +37,8 @@ public class LoginPushRecorder {
                 loginPushes.add(
                         new LoginPush(resultSet.getInt("msg_id"),
                                 resultSet.getLong("timestamp"),
-                                JSONComponentSerializer.json().deserialize(resultSet.getString("raw_message"))));
+                                JSONComponentSerializer.json().deserialize(resultSet.getString("raw_message")),
+                                JSONComponentSerializer.json().deserialize(resultSet.getString("sender_name"))));
             }
             return loginPushes;
         }
@@ -51,11 +52,12 @@ public class LoginPushRecorder {
         }
     }
 
-    public void createLoginPush(UUID playerUniqueID, Component message) throws SQLException {
-        try (var statement = connection.prepareStatement("INSERT INTO " + TABLE_NAME + " (receiverUniqueID, timestamp, raw_message) VALUES (?, ?, ?)")) {
+    public void createLoginPush(UUID playerUniqueID, Component message, Component senderName) throws SQLException {
+        try (var statement = connection.prepareStatement("INSERT INTO " + TABLE_NAME + " (receiverUniqueID, timestamp, raw_message,sender_name) VALUES (?, ?, ?,?)")) {
             statement.setString(1, playerUniqueID.toString());
             statement.setLong(2, System.currentTimeMillis());
             statement.setString(3, JSONComponentSerializer.json().serialize(message));
+            statement.setString(4, JSONComponentSerializer.json().serialize(senderName));
             statement.execute();
         }
     }

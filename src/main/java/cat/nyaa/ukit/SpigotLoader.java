@@ -5,6 +5,7 @@ import cat.nyaa.ukit.chat.ChatFunction;
 import cat.nyaa.ukit.elytra.ElytraFunction;
 import cat.nyaa.ukit.item.ItemFunction;
 import cat.nyaa.ukit.lock.LockFunction;
+import cat.nyaa.ukit.loginpush.LoginPushFunction;
 import cat.nyaa.ukit.mail.MailFunction;
 import cat.nyaa.ukit.redbag.RedbagFunction;
 import cat.nyaa.ukit.show.ShowFunction;
@@ -15,6 +16,7 @@ import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.xpstore.XpStoreFunction;
 import com.google.gson.GsonBuilder;
 import land.melon.lab.simplelanguageloader.SimpleLanguageLoader;
+import net.kyori.adventure.text.Component;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -30,6 +32,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class SpigotLoader extends JavaPlugin implements TabExecutor {
@@ -53,6 +56,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     private XpStoreFunction xpStoreFunction;
     private ElytraFunction elytraFunction;
     private MailFunction mailFunction;
+    private LoginPushFunction loginPushFunction;
 
     @Override
     public void onEnable() {
@@ -118,7 +122,12 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
             e.printStackTrace();
             return false;
         }
-
+        try {
+            loginPushFunction = new LoginPushFunction(this, new File(getDataFolder(), "loginpush.sqlite3"));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
 
         //event handlers
         getServer().getPluginManager().registerEvents(sitFunction, this);
@@ -128,6 +137,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         getServer().getPluginManager().registerEvents(elytraFunction, this);
         getServer().getPluginManager().registerEvents(mailFunction, this);
         getServer().getPluginManager().registerEvents(lockFunction, this);
+        getServer().getPluginManager().registerEvents(loginPushFunction, this);
 
         return true;
     }
@@ -182,6 +192,9 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
             case MAIL ->
                     invokeCommand(mailFunction, sender, command, label, argTruncated);
 
+            case NEWS ->
+                    invokeCommand(loginPushFunction, sender, command, label, argTruncated);
+
         }
         return true;
     }
@@ -212,6 +225,9 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
                     xpStoreFunction != null && xpStoreFunction.checkPermission(commandSender);
             case MAIL ->
                     mailFunction != null && mailFunction.checkPermission(commandSender);
+            case NEWS ->
+                    loginPushFunction != null && loginPushFunction.checkPermission(commandSender);
+
             case RELOAD -> commandSender.hasPermission(RELOAD_PERMISSION_NODE);
         };
     }
@@ -246,6 +262,8 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
                             completeList = xpStoreFunction.tabComplete(sender, command, alias, argsTruncated);
                     case MAIL ->
                             completeList = mailFunction.tabComplete(sender, command, alias, argsTruncated);
+                    case NEWS ->
+                            completeList = loginPushFunction.tabComplete(sender, command, alias, argsTruncated);
                     case RELOAD -> {
                     }
                 }
@@ -269,6 +287,13 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         return economyProvider != null;
     }
 
+    public void newLoginPush(UUID playerUniqueID, Component message, Component messageSender) throws SQLException, IllegalStateException {
+        if (loginPushFunction == null) {
+            throw new IllegalStateException("LoginPushFunction not initialized");
+        }
+        loginPushFunction.getLoginPushRecorder().createLoginPush(playerUniqueID, message, messageSender);
+    }
+
     private boolean setupChat() {
         var rsp = Bukkit.getServicesManager().getRegistration(Chat.class);
         if (rsp != null) {
@@ -290,6 +315,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         REDBAG,
         ITEM,
         XP,
-        MAIL
+        MAIL,
+        NEWS
     }
 }
