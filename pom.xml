@@ -29,10 +29,10 @@
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
-        <repository>
+        <!-- <repository>
             <id>essentials-releases</id>
             <url>https://repo.essentialsx.net/releases/</url>
-        </repository>
+        </repository> -->
         <repository>
             <id>essentials-snapshots</id>
             <url>https://repo.essentialsx.net/snapshots/</url>
