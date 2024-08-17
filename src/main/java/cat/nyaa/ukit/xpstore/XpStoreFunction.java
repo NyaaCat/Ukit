@@ -250,7 +250,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
     public void onThrewExpBottleLaunch(ProjectileLaunchEvent event) {
         if (!(event.getEntity().getShooter() instanceof Player shooterPlayer))
             return;
-        if (event.getEntity().getType() != EntityType.THROWN_EXP_BOTTLE)
+        if (event.getEntity().getType() != EntityType.EXPERIENCE_BOTTLE)
             return;
         if (!playerExpBottleMap.containsKey(shooterPlayer.getUniqueId()))
             return;
