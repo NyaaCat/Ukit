@@ -50,7 +50,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: build project with maven
-        run: mvn --batch-mode package
+        run: mvn -DjenkinsBuildNumber=${{github.run_number}} --batch-mode package
 
       - name: upload artifacts
         uses: actions/upload-artifact@v4
