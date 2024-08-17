@@ -65,6 +65,6 @@ jobs:
     - name: Publish to GitHub Packages Apache Maven
       run: mvn -DjenkinsBuildNumber=${{github.run_number}} --batch-mode deploy
       env:
-        GITHUB_MAVEN_URL: https://maven.pkg.github.com/${{github.repository}}
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        MAVEN_PUBLISH_URL: https://maven.pkg.github.com/${{github.repository}}
+
 
