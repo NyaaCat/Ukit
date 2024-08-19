@@ -9,10 +9,10 @@ softdepend:
   - EssentialsDiscord
   - LuckPerms
   - LockettePro
-api-version: 1.20
+api-version: ${minecraft.version}
 folia-supported: true
 libraries:
-  - org.xerial:sqlite-jdbc:3.44.1.0
+  - org.xerial:sqlite-jdbc:3.46.0.0
 authors:
   - Nyaacat Community
 commands:
