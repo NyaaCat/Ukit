@@ -13,8 +13,6 @@ name: Publish to GitHub Packages
 run-name: 'Package Publish #${{github.run_number}}'
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
   
 jobs:
@@ -35,32 +33,32 @@ jobs:
         java-version: '21'
         distribution: 'oracle'
 
-    - name: setup maven
-      uses: s4u/maven-settings-action@v3.0.0
-      with:
-        servers: |
-          [
-            {
-              "id": "ghpkg-SimpleLanguageLoader",
-              "username": "${{github.actor}}",
-              "password": "${{secrets.GITHUB_TOKEN}}"
-            },
-            {
-              "id": "ghpkg-ECore",
-              "username": "${{github.actor}}",
-              "password": "${{secrets.GITHUB_TOKEN}}"
-            },
-            {
-              "id": "ghpkg-LockettePro",
-              "username": "${{github.actor}}",
-              "password": "${{secrets.GITHUB_TOKEN}}"
-            },
-            {
-              "id": "maven-publish",
-              "username": "${{github.actor}}",
-              "password": "${{secrets.GITHUB_TOKEN}}"
-            }
-          ]
+#    - name: setup maven
+#      uses: s4u/maven-settings-action@v3.0.0
+#      with:
+#        servers: |
+#          [
+#            {
+#              "id": "ghpkg-SimpleLanguageLoader",
+#              "username": "${{github.actor}}",
+#              "password": "${{secrets.GITHUB_TOKEN}}"
+#            },
+#            {
+#              "id": "ghpkg-ECore",
+#              "username": "${{github.actor}}",
+#              "password": "${{secrets.GITHUB_TOKEN}}"
+#            },
+#            {
+#              "id": "ghpkg-LockettePro",
+#              "username": "${{github.actor}}",
+#              "password": "${{secrets.GITHUB_TOKEN}}"
+#            },
+#            {
+#              "id": "maven-publish",
+#              "username": "${{github.actor}}",
+#              "password": "${{secrets.GITHUB_TOKEN}}"
+#            }
+#          ]
 
     - name: Publish to GitHub Packages Apache Maven
       run: mvn --batch-mode deploy -Pdeploy-github

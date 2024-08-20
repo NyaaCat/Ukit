@@ -6,21 +6,21 @@
 
     <groupId>cat.nyaa</groupId>
     <artifactId>ukit</artifactId>
-    <version>1.6-SNAPSHOT</version>
+    <version>1.6</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <minecraft.version>1.21.1</minecraft.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <github.package.url>${env.GITHUB_MAVEN_URL}</github.package.url>
     </properties>
 
     <repositories>
-        <!-- <repository>
+        <repository>
             <id>nyaacat-repo</id>
-            <url>https://ci.nyaacat.com/maven</url>
-        </repository> -->
+            <url>https://ci.nyaacat.com/maven/</url>
+        </repository>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
@@ -29,25 +29,9 @@
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
-        <!-- <repository>
+        <repository>
             <id>essentials-releases</id>
             <url>https://repo.essentialsx.net/releases/</url>
-        </repository> -->
-        <repository>
-            <id>essentials-snapshots</id>
-            <url>https://repo.essentialsx.net/snapshots/</url>
-        </repository>
-        <repository>
-            <id>ghpkg-SimpleLanguageLoader</id>
-            <url>https://maven.pkg.github.com/Lori3f6/SimpleLanguageLoader</url>
-        </repository>
-        <repository>
-            <id>ghpkg-ECore</id>
-            <url>https://maven.pkg.github.com/NyaaCat/ECore</url>
-        </repository>
-        <repository>
-            <id>ghpkg-LockettePro</id>
-            <url>https://maven.pkg.github.com/NyaaCat/LockettePro</url>
         </repository>
     </repositories>
 
@@ -60,8 +44,8 @@
         </dependency>
         <dependency>
             <groupId>land.melon.lab</groupId>
-            <artifactId>SimpleLanguageLoader</artifactId>
-            <version>1.13.4</version>
+            <artifactId>simplelanguageloader</artifactId>
+            <version>1.13.5</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -91,23 +75,16 @@
         <dependency>
             <groupId>net.essentialsx</groupId>
             <artifactId>EssentialsX</artifactId>
-            <version>2.21.0-SNAPSHOT</version>
+            <version>2.20.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.essentialsx</groupId>
             <artifactId>EssentialsXDiscord</artifactId>
-            <version>2.21.0-SNAPSHOT</version>
+            <version>2.20.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>maven-snapshots</id>
-            <url>https://repository.apache.org/content/repositories/snapshots/</url>
-        </pluginRepository>
-    </pluginRepositories>
 
     <build>
         <resources>
@@ -186,7 +163,7 @@
             <distributionManagement>
                 <repository>
                     <id>maven-publish</id>
-                    <url>${env.MAVEN_PUBLISH_URL}</url>
+                    <url>${github.package.url}</url>
                     <!-- refer to .github/workflows/maven-publish-ghpkg.yml -->
                 </repository>
             </distributionManagement>
