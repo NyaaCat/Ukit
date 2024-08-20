@@ -179,13 +179,17 @@
             </plugin>
         </plugins>
     </build>
-
-    <distributionManagement>
-        <repository>
-            <id>maven-publish</id>
-            <url>${env.MAVEN_PUBLISH_URL}</url>
-            <!-- refer to .github/workflows/maven-publish-ghpkg.yml -->
-        </repository>
-    </distributionManagement>
-
+    
+    <profiles>
+        <profile>
+            <id>deploy-github</id>
+            <distributionManagement>
+                <repository>
+                    <id>maven-publish</id>
+                    <url>${env.MAVEN_PUBLISH_URL}</url>
+                    <!-- refer to .github/workflows/maven-publish-ghpkg.yml -->
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 </project>
