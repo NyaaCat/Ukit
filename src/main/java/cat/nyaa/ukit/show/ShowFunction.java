@@ -6,6 +6,7 @@ import cat.nyaa.ukit.utils.EssentialsPluginUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import land.melon.lab.simplelanguageloader.utils.ItemUtils;
+import land.melon.lab.simplelanguageloader.utils.LocaleUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.Command;
@@ -40,7 +41,9 @@ public class ShowFunction implements SubCommandExecutor, SubTabCompleter {
                 Pair.of("player",
                         EssentialsPluginUtils.nickWithHoverOrNormalName(senderPlayer.getUniqueId())
                 ),
-                Pair.of("item", ItemUtils.itemTextWithHover(itemInHand)),
+                Pair.of("item", itemInHand.getType().isAir() || itemInHand.getAmount() == 0 ?
+                        LocaleUtils.getTranslatableItemComponent(itemInHand) :  // to fix runtime error thrown by packet clientbound/minecraft:system_chat validity check
+                        ItemUtils.itemTextWithHover(itemInHand)), // amount must be within range [1;99], Item must not be minecraft:air
                 Pair.of("amount", itemInHand.getAmount())
         );
 
