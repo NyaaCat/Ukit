@@ -15,6 +15,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <minecraft.version>1.21.1</minecraft.version>
         <github.package.url>${env.GITHUB_MAVEN_URL}</github.package.url>
+        <maven.local.dir>${env.MAVEN_DIR}</maven.local.dir>
     </properties>
 
     <repositories>
@@ -166,6 +167,15 @@
                     <id>maven-publish</id>
                     <url>${github.package.url}</url>
                     <!-- refer to .github/workflows/maven-publish-ghpkg.yml -->
+                </repository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>deploy-local</id>
+            <distributionManagement>
+                <repository>
+                    <id>laven-local</id>
+                    <url>file://${maven.local.dir}</url>
                 </repository>
             </distributionManagement>
         </profile>

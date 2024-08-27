@@ -7,7 +7,7 @@ pipeline {
                     maven "apache-maven-3.9.9"
                 }
                 steps {
-                    sh 'mvn package'
+                    sh 'mvn deploy -Ddeploy-local'
                 }
             }
         }
