@@ -42,51 +42,53 @@ public class LoginPushFunction implements Listener, SubCommandExecutor, SubTabCo
             return true;
         }
         var dateFormat = new SimpleDateFormat(pluginInstance.language.loginPushLang.push_timestamp_format.produce());
-
-        try {
-            var loginPushes = loginPushRecorder.getLoginPush(senderPlayer.getUniqueId());
-            if (loginPushes.isEmpty()) {
-                senderPlayer.sendMessage(pluginInstance.language.loginPushLang.no_new_push.produce());
-                return true;
+        Bukkit.getAsyncScheduler().runNow(pluginInstance, (task) -> {
+            try {
+                var loginPushes = loginPushRecorder.getLoginPush(senderPlayer.getUniqueId());
+                if (loginPushes.isEmpty()) {
+                    senderPlayer.sendMessage(pluginInstance.language.loginPushLang.no_new_push.produce());
+                    return;
+                }
+                senderPlayer.sendMessage(pluginInstance.language.loginPushLang.login_push_title.produce());
+                loginPushes.forEach(loginPush -> {
+                    var line1 = pluginInstance.language.loginPushLang.push_message_line1.produceAsComponent(
+                            Pair.of("message", loginPush.content()),
+                            Pair.of("time", dateFormat.format(loginPush.time())),
+                            Pair.of("sender", loginPush.sender())
+                    );
+                    var line2 = pluginInstance.language.loginPushLang.push_message_line2.produceAsComponent(
+                            Pair.of("message", loginPush.content()),
+                            Pair.of("time", dateFormat.format(loginPush.time())),
+                            Pair.of("sender", loginPush.sender())
+                    );
+                    senderPlayer.sendMessage(
+                            Component.text().append(line1).appendNewline().append(line2));
+                });
+                loginPushRecorder.deleteLoginPush(loginPushes.stream().map(LoginPush::id).toList());
+                senderPlayer.sendMessage(pluginInstance.language.loginPushLang.login_push_end.produce());
+            } catch (SQLException e) {
+                e.printStackTrace();
+                commandSender.sendMessage(pluginInstance.language.commonLang.sqlErrorOccurred.produce());
             }
-
-            senderPlayer.sendMessage(pluginInstance.language.loginPushLang.login_push_title.produce());
-            loginPushes.forEach(loginPush -> {
-                var line1 = pluginInstance.language.loginPushLang.push_message_line1.produceAsComponent(
-                        Pair.of("message", loginPush.content()),
-                        Pair.of("time", dateFormat.format(loginPush.time())),
-                        Pair.of("sender", loginPush.sender())
-                );
-                var line2 = pluginInstance.language.loginPushLang.push_message_line2.produceAsComponent(
-                        Pair.of("message", loginPush.content()),
-                        Pair.of("time", dateFormat.format(loginPush.time())),
-                        Pair.of("sender", loginPush.sender())
-                );
-                senderPlayer.sendMessage(
-                        Component.text().append(line1).appendNewline().append(line2));
-            });
-            loginPushRecorder.deleteLoginPush(loginPushes.stream().map(LoginPush::id).toList());
-            senderPlayer.sendMessage(pluginInstance.language.loginPushLang.login_push_end.produce());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            commandSender.sendMessage(pluginInstance.language.commonLang.sqlErrorOccurred.produce());
-        }
+        });
         return true;
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        try {
-            int unreadPush = loginPushRecorder.countUnreadPush(event.getPlayer().getUniqueId());
-            if (unreadPush > 0) {
-                Bukkit.getGlobalRegionScheduler().runDelayed(pluginInstance, (ignored) -> event.getPlayer().sendMessage(pluginInstance.language.loginPushLang.login_push_notice.produce(
-                        Pair.of("number", unreadPush)
-                )), 20 * 3);
+        Bukkit.getAsyncScheduler().runNow(pluginInstance,(task)->{
+            try {
+                int unreadPush = loginPushRecorder.countUnreadPush(event.getPlayer().getUniqueId());
+                if (unreadPush > 0) {
+                    Bukkit.getGlobalRegionScheduler().runDelayed(pluginInstance, (ignored) -> event.getPlayer().sendMessage(pluginInstance.language.loginPushLang.login_push_notice.produce(
+                            Pair.of("number", unreadPush)
+                    )), 20 * 3);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                event.getPlayer().sendMessage(pluginInstance.language.commonLang.sqlErrorOccurred.produce());
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            event.getPlayer().sendMessage(pluginInstance.language.commonLang.sqlErrorOccurred.produce());
-        }
+        });
     }
 
     @Override

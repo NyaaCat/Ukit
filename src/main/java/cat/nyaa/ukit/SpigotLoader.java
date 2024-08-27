@@ -1,6 +1,7 @@
 package cat.nyaa.ukit;
 
 import cat.nyaa.ecore.EconomyCore;
+import cat.nyaa.ukit.api.UKitAPI;
 import cat.nyaa.ukit.chat.ChatFunction;
 import cat.nyaa.ukit.elytra.ElytraFunction;
 import cat.nyaa.ukit.item.ItemFunction;
@@ -57,6 +58,7 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     private ElytraFunction elytraFunction;
     private MailFunction mailFunction;
     private LoginPushFunction loginPushFunction;
+    private static UKitAPI uKitAPI;
 
     @Override
     public void onEnable() {
@@ -138,6 +140,8 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         getServer().getPluginManager().registerEvents(mailFunction, this);
         getServer().getPluginManager().registerEvents(lockFunction, this);
         getServer().getPluginManager().registerEvents(loginPushFunction, this);
+
+        new UKitAPI(this,loginPushFunction.getLoginPushRecorder());
 
         return true;
     }
@@ -303,6 +307,10 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     }
 
     private void IGNORE_RESULT(Object o) {
+    }
+
+    public static UKitAPI getUKitAPI(){
+        return uKitAPI;
     }
 
     enum SubCommands {
