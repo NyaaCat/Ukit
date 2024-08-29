@@ -34,7 +34,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter, Listen
     private final String LOCK_PERMISSION_PRIVILEGE_NODE = "ukit.lock.admin";
     private final NamespacedKey LOCK_METADATA_KEY;
     private final NamespacedKey LOCK_CREATION_TIME_ON_ITEM_KEY;
-    private final NamespacedKey LEGACY_METADATA_UID = new NamespacedKey("nyaautils", "exhibitionkeyname");
+    private final NamespacedKey LEGACY_METADATA_UID = new NamespacedKey("nyaautils", "exhibitionkeyuid");
     private final UUID ZERO_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
     private final List<String> subCommands = List.of("info", "setup", "remove", "property");
 
@@ -223,6 +223,7 @@ public class LockFunction implements SubCommandExecutor, SubTabCompleter, Listen
     private void removeLegacyLockedFrame(ItemFrame itemFrame) {
         itemFrame.setItem(null);
         itemFrame.setFixed(false);
+        itemFrame.getPersistentDataContainer().remove(LEGACY_METADATA_UID);
     }
 
     private UUID getLegacyLockFrameOwner(ItemFrame itemFrame) {

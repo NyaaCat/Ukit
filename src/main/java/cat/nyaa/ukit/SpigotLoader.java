@@ -58,7 +58,6 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     private ElytraFunction elytraFunction;
     private MailFunction mailFunction;
     private LoginPushFunction loginPushFunction;
-    private static UKitAPI uKitAPI;
 
     @Override
     public void onEnable() {
@@ -307,10 +306,6 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
     }
 
     private void IGNORE_RESULT(Object o) {
-    }
-
-    public static UKitAPI getUKitAPI(){
-        return uKitAPI;
     }
 
     enum SubCommands {
