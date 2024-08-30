@@ -309,7 +309,9 @@ public class MailFunction implements SubCommandExecutor, SubTabCompleter, Listen
                     return null;
                 }
             } else if (args[0].equalsIgnoreCase("sendto")) {
-                return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
+                if (args.length == 2)
+                    return Bukkit.getOnlinePlayers().stream().map(Player::getName).filter(t -> t.toLowerCase().startsWith(args[1].toLowerCase())).toList();
+                else return null;
             } else {
                 return null;
             }
