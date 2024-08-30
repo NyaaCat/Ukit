@@ -10,7 +10,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.Rotatable;
 import org.bukkit.block.sign.Side;
-import org.bukkit.block.sign.SignSide;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -85,15 +84,15 @@ public class Utils {
         return angleInDegrees;
     }
 
-    public static SignSide getSignSideLookingAt(Player player, Sign sign) {
+    public static Side getSignSideLookingAt(Player player, Sign sign) {
         var signLoc = getCenterOfSign(sign);
         var playerLoc = Vector3D.fromBukkitLocation(player.getLocation());
         var angle = angleFromSignFace(playerLoc, signLoc, sign.getBlockData());
 
         if (angle > 270 || angle <= 90)
-            return sign.getSide(Side.FRONT);
+            return Side.FRONT;
         else
-            return sign.getSide(Side.BACK);
+            return Side.BACK;
     }
 
     public static Entity getEntityLookingAt(Player player, Predicate<Entity> predicate) {

@@ -10,15 +10,11 @@ import land.melon.lab.simplelanguageloader.utils.Pair;
 import land.melon.lab.simplelanguageloader.utils.TextUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
-import org.bukkit.block.data.Directional;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.block.SignChangeEvent;
 
 import java.util.Arrays;
 import java.util.List;
@@ -81,20 +77,14 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                             return true;
                         }
                     }
-                    var signSide = Utils.getSignSideLookingAt(senderPlayer, sign);
+                    var side = Utils.getSignSideLookingAt(senderPlayer, sign);
+                    var signSide = sign.getSide(side);
                     var lineContentBeforeChange = signSide.getLine(line - 1);
                     signSide.setLine(line - 1, finalLine);
                     sign.update();
-                    var blockPlaceEvent = new BlockPlaceEvent(targetBlock, targetBlock.getState(),
-                            targetBlock.getBlockData() instanceof Directional ?
-                                    targetBlock.getRelative(((Directional) targetBlock.getBlockData()).getFacing().getOppositeFace()) :
-                                    targetBlock.getRelative(BlockFace.DOWN),
-                            new ItemStack(targetBlock.getType(), 1),
-                            senderPlayer,
-                            !inInSpawnProtection(targetBlock.getLocation()) || senderPlayer.isOp(),
-                            EquipmentSlot.HAND);
-                    Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-                    if (blockPlaceEvent.isCancelled()) {
+                    var signChangeEvent = new SignChangeEvent(targetBlock, senderPlayer, signSide.lines(), side);
+                    Bukkit.getPluginManager().callEvent(signChangeEvent);
+                    if (signChangeEvent.isCancelled()) {
                         signSide.setLine(line - 1, lineContentBeforeChange);
                         sign.update();
                         senderPlayer.sendMessage(pluginInstance.language.signEditLang.modifyCancelled.produce());
@@ -140,8 +130,8 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                         if (LockettePluginUtils.isLockSign(targetBlock)) {
                             return List.of();
                         }
-                        var signSide = Utils.getSignSideLookingAt(player, sign);
-
+                        var lookingSide = Utils.getSignSideLookingAt(player, sign);
+                        var signSide = sign.getSide(lookingSide);
                         var suggestion = signSide.getLine(line - 1).replaceAll("&", "§§").replaceAll("§", "&");
                         return suggestion.length() == 0 ? List.of() : List.of(suggestion);
                     }
