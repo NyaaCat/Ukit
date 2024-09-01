@@ -3,6 +3,7 @@ package cat.nyaa.ukit.api;
 import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.loginpush.LoginPushRecorder;
 import net.kyori.adventure.text.Component;
+import org.bukkit.NamespacedKey;
 
 import java.sql.SQLException;
 import java.util.UUID;
@@ -10,6 +11,7 @@ import java.util.UUID;
 public class UKitAPI {
     private final SpigotLoader pluginInstance;
     private final LoginPushRecorder loginPushRecorder;
+    public static final NamespacedKey signEditLockTagKey = new NamespacedKey("ukit", "sign_tagged_unchangeable");
     private static UKitAPI instance;
 
     public UKitAPI(SpigotLoader pluginInstance, LoginPushRecorder loginPushRecorder) {

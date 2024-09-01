@@ -11,6 +11,7 @@ public class SignEditLang {
     public Text notASign = Text.of("&cThe block which you are looking at is not a sign");
 
     public Text cantModifyLockSign = Text.of("&cLock sign couldn't be modified");
+    public Text signTaggedAsUnchangeable = Text.of("&cThis sign has tagged as unchangeable");
 
     public Text modifyCancelled = Text.of("&cThis sign couldn't be modified due to server side configuration");
     public Text invalidLineNumber = Text.of("&c{input} is not a valid line number, it should be a number between 1 and 4");

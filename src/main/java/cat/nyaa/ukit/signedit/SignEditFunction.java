@@ -1,6 +1,7 @@
 package cat.nyaa.ukit.signedit;
 
 import cat.nyaa.ukit.SpigotLoader;
+import cat.nyaa.ukit.api.UKitAPI;
 import cat.nyaa.ukit.utils.LockettePluginUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
@@ -50,6 +51,10 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                 // fail-safe
                 if (LockettePluginUtils.isLockSign(targetBlock)) {
                     commandSender.sendMessage(pluginInstance.language.signEditLang.cantModifyLockSign.produce());
+                    return true;
+                }
+                if (taggedAsUnchangeable(sign)) {
+                    commandSender.sendMessage(pluginInstance.language.signEditLang.signTaggedAsUnchangeable.produce());
                     return true;
                 }
                 int line;
@@ -104,6 +109,10 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
         return location.toVector().subtract(location.getWorld().getSpawnLocation().toVector()).length() <= pluginInstance.getServer().getSpawnRadius();
     }
 
+    private boolean taggedAsUnchangeable(Sign sign) {
+        return sign.getPersistentDataContainer().has(UKitAPI.signEditLockTagKey);
+    }
+
     @Override
     public String getHelp() {
         return pluginInstance.language.signEditLang.help.produce(
@@ -128,6 +137,9 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
 
                     if (targetBlock.getState() instanceof Sign sign) {
                         if (LockettePluginUtils.isLockSign(targetBlock)) {
+                            return List.of();
+                        }
+                        if (taggedAsUnchangeable(sign)) {
                             return List.of();
                         }
                         var lookingSide = Utils.getSignSideLookingAt(player, sign);
