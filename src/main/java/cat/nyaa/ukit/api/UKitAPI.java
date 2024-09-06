@@ -2,6 +2,7 @@ package cat.nyaa.ukit.api;
 
 import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.loginpush.LoginPushRecorder;
+import cat.nyaa.ukit.utils.EssentialsPluginUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.NamespacedKey;
 
@@ -26,5 +27,14 @@ public class UKitAPI {
 
     public void createLoginPush(UUID playerUniqueID, Component message, Component senderName) throws SQLException {
         loginPushRecorder.createLoginPush(playerUniqueID, message, senderName);
+    }
+
+    public void pushMessage(UUID playerUniqueID, Component message, Component senderName) throws SQLException {
+        var player = pluginInstance.getServer().getPlayer(playerUniqueID);
+        if (player == null || !player.isOnline() || EssentialsPluginUtils.isAFK(playerUniqueID)) {
+            createLoginPush(playerUniqueID, message, senderName);
+        } else {
+            player.sendMessage(message);
+        }
     }
 }

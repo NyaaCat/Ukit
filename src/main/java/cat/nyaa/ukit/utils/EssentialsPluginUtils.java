@@ -40,6 +40,13 @@ public class EssentialsPluginUtils {
         return essentials.getUser(uniqueID).getNickname() != null;
     }
 
+    public static boolean isAFK(UUID uniqueID) {
+        if (!enabled) {
+            return false;
+        }
+        return essentials.getUser(uniqueID).isAfk();
+    }
+
     public static Object nickWithHoverOrNormalName(UUID uniqueID) {
         return EssentialsPluginUtils.isEnabled() && EssentialsPluginUtils.hasNick(uniqueID) ?
                 LegacyComponentSerializer.legacySection().deserialize(EssentialsPluginUtils.getPlayerNickName(uniqueID))
