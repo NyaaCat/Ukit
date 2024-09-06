@@ -2,6 +2,7 @@ package cat.nyaa.ukit.mail;
 
 import cat.nyaa.ukit.MainLang;
 import cat.nyaa.ukit.SpigotLoader;
+import cat.nyaa.ukit.api.UKitAPI;
 import cat.nyaa.ukit.utils.EssentialsPluginUtils;
 import cat.nyaa.ukit.utils.LockettePluginUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
@@ -213,16 +214,8 @@ public class MailFunction implements SubCommandExecutor, SubTabCompleter, Listen
                         Pair.of("amount", itemInHand.getAmount())
                 );
 
-                if (targetPlayer.isOnline()) {
-                    targetPlayer.getPlayer().sendMessage(receiverMessage);
-                } else {
-                    try {
-                        var serviceSenderName = getLanguage().mailLang.serviceName.produceAsComponent();
-                        pluginInstance.newLoginPush(targetPlayer.getUniqueId(), receiverMessage, serviceSenderName);
-                    } catch (SQLException | IllegalStateException ignore) {
-                        ignore.printStackTrace();
-                    }
-                }
+                var serviceSenderName = getLanguage().mailLang.serviceName.produceAsComponent();
+                UKitAPI.getAPIInstance().pushMessage(targetPlayer.getUniqueId(), receiverMessage, serviceSenderName);
 
             } catch (SQLException e) {
                 e.printStackTrace();

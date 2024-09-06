@@ -290,13 +290,6 @@ public class SpigotLoader extends JavaPlugin implements TabExecutor {
         return economyProvider != null;
     }
 
-    public void newLoginPush(UUID playerUniqueID, Component message, Component messageSender) throws SQLException, IllegalStateException {
-        if (loginPushFunction == null) {
-            throw new IllegalStateException("LoginPushFunction not initialized");
-        }
-        loginPushFunction.getLoginPushRecorder().createLoginPush(playerUniqueID, message, messageSender);
-    }
-
     private boolean setupChat() {
         var rsp = Bukkit.getServicesManager().getRegistration(Chat.class);
         if (rsp != null) {
