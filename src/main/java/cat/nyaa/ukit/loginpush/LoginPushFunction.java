@@ -78,14 +78,14 @@ public class LoginPushFunction implements Listener, SubCommandExecutor, SubTabCo
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Bukkit.getAsyncScheduler().runNow(pluginInstance,(task)->{
-            countAndSendMessageIfHasMessage(event.getPlayer());
+            countAndSendMessageIfHasMessage(event.getPlayer(), 20 * 3);
         });
     }
 
     @EventHandler
     public void onAFKStatusChange(AfkStatusChangeEvent event) {
         if (!event.getValue()) {
-            countAndSendMessageIfHasMessage(event.getAffected().getBase());
+            countAndSendMessageIfHasMessage(event.getAffected().getBase(), 10);
         }
     }
 
@@ -108,13 +108,13 @@ public class LoginPushFunction implements Listener, SubCommandExecutor, SubTabCo
         return loginPushRecorder;
     }
 
-    private void countAndSendMessageIfHasMessage(Player player) {
+    private void countAndSendMessageIfHasMessage(Player player, long delayInTick) {
         try {
             int unreadPush = loginPushRecorder.countUnreadPush(player.getUniqueId());
             if (unreadPush > 0) {
                 Bukkit.getGlobalRegionScheduler().runDelayed(pluginInstance, (ignored) -> player.sendMessage(pluginInstance.language.loginPushLang.login_push_notice.produce(
                         Pair.of("number", unreadPush)
-                )), 20 * 3);
+                )), delayInTick);
             }
         } catch (SQLException e) {
             pluginInstance.getLogger().warning(e.getMessage());
