@@ -4,6 +4,7 @@ import cat.nyaa.ukit.SpigotLoader;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import land.melon.lab.simplelanguageloader.utils.Pair;
+import net.ess3.api.events.AfkStatusChangeEvent;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -77,18 +78,15 @@ public class LoginPushFunction implements Listener, SubCommandExecutor, SubTabCo
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Bukkit.getAsyncScheduler().runNow(pluginInstance,(task)->{
-            try {
-                int unreadPush = loginPushRecorder.countUnreadPush(event.getPlayer().getUniqueId());
-                if (unreadPush > 0) {
-                    Bukkit.getGlobalRegionScheduler().runDelayed(pluginInstance, (ignored) -> event.getPlayer().sendMessage(pluginInstance.language.loginPushLang.login_push_notice.produce(
-                            Pair.of("number", unreadPush)
-                    )), 20 * 3);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                event.getPlayer().sendMessage(pluginInstance.language.commonLang.sqlErrorOccurred.produce());
-            }
+            countAndSendMessageIfHasMessage(event.getPlayer());
         });
+    }
+
+    @EventHandler
+    public void onAFKStatusChange(AfkStatusChangeEvent event) {
+        if (!event.getValue()) {
+            countAndSendMessageIfHasMessage(event.getAffected().getBase());
+        }
     }
 
     @Override
@@ -108,5 +106,19 @@ public class LoginPushFunction implements Listener, SubCommandExecutor, SubTabCo
 
     public LoginPushRecorder getLoginPushRecorder() {
         return loginPushRecorder;
+    }
+
+    private void countAndSendMessageIfHasMessage(Player player) {
+        try {
+            int unreadPush = loginPushRecorder.countUnreadPush(player.getUniqueId());
+            if (unreadPush > 0) {
+                Bukkit.getGlobalRegionScheduler().runDelayed(pluginInstance, (ignored) -> player.sendMessage(pluginInstance.language.loginPushLang.login_push_notice.produce(
+                        Pair.of("number", unreadPush)
+                )), 20 * 3);
+            }
+        } catch (SQLException e) {
+            pluginInstance.getLogger().warning(e.getMessage());
+            player.sendMessage(pluginInstance.language.commonLang.sqlErrorOccurred.produce());
+        }
     }
 }
