@@ -11,11 +11,17 @@ import land.melon.lab.simplelanguageloader.utils.Pair;
 import land.melon.lab.simplelanguageloader.utils.TextUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.Directional;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
 import java.util.List;
@@ -87,9 +93,16 @@ public class SignEditFunction implements SubCommandExecutor, SubTabCompleter {
                     var lineContentBeforeChange = signSide.getLine(line - 1);
                     signSide.setLine(line - 1, finalLine);
                     sign.update();
-                    var signChangeEvent = new SignChangeEvent(targetBlock, senderPlayer, signSide.lines(), side);
-                    Bukkit.getPluginManager().callEvent(signChangeEvent);
-                    if (signChangeEvent.isCancelled()) {
+                    var blockPlaceEvent = new BlockPlaceEvent(targetBlock, targetBlock.getState(),
+                            targetBlock.getBlockData() instanceof Directional ?
+                                    targetBlock.getRelative(((Directional) targetBlock.getBlockData()).getFacing().getOppositeFace()) :
+                                    targetBlock.getRelative(BlockFace.DOWN),
+                            new ItemStack(Material.AIR, 1),
+                            senderPlayer,
+                            !inInSpawnProtection(targetBlock.getLocation()) || senderPlayer.isOp(),
+                            EquipmentSlot.HAND);
+                    Bukkit.getPluginManager().callEvent(blockPlaceEvent);
+                    if (blockPlaceEvent.isCancelled()) {
                         signSide.setLine(line - 1, lineContentBeforeChange);
                         sign.update();
                         senderPlayer.sendMessage(pluginInstance.language.signEditLang.modifyCancelled.produce());
