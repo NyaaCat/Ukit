@@ -23,7 +23,7 @@ public class EssentialsDiscordRelayUtils {
     }
 
     public static void broadCastMessageToChat(String message) {
-        if (enabled) {
+        if (enabled && discordService != null) {
             discordService.sendMessage(MessageType.DefaultTypes.CHAT, message, false);
         }
     }

@@ -51,7 +51,6 @@ public class ShowFunction implements SubCommandExecutor, SubTabCompleter {
         // fail-safe
         if (pluginInstance.config.showConfig.enableDiscordRelay) {
             EssentialsDiscordRelayUtils.broadCastMessageToChat(pluginInstance.config.showConfig.discordRelayPrefix + LegacyComponentSerializer.legacySection().serialize(message));
-
         }
         return true;
     }
