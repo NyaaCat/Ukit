@@ -1,11 +1,23 @@
 package cat.nyaa.ukit.utils;
 
 import com.google.common.primitives.Ints;
+import org.bukkit.Location;
+import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.util.Vector;
+
+import java.util.List;
+import java.util.Random;
+
 
 public final class ExperienceUtils {
     // From NyaaCore
     // https://github.com/NyaaCat/NyaaCore/blob/0bc366debf51b0f4dcd867b657be19e14e772100/src/main/java/cat/nyaa/nyaacore/utils/ExperienceUtils.java
+
+    // refer to https://minecraft.wiki/w/Experience
+    private static final List<Integer> usableSplashExpList = List.of(1, 2, 6, 16, 36, 72, 148, 306, 616, 1236, 2476, 32767, 65535, 131071).reversed();
+    private static final Random random = new Random();
 
     /**
      * How much exp points at least needed to reach this level.
@@ -43,14 +55,47 @@ public final class ExperienceUtils {
 
     /**
      * Which level the player at if he/she has this mount of exp points
-     * TODO optimization
+     * refer <a href="https://minecraft.wiki/w/Experience">minecraft.wiki/w/Experience</a>
      */
-    public static int getLevelForExp(int exp) {
-        if (exp < 0) throw new IllegalArgumentException();
-        for (int lv = 1; lv < 21000; lv++) {
-            if (getExpForLevel(lv) > exp) return lv - 1;
+    public static int getLevelForExp(Integer total) {
+        // 0-352
+        // 353-1507
+        // 1508+
+        return (int) switch (total) {
+            case Integer i when i < 353 -> Math.sqrt(total + 9.0) - 3.0;
+            case Integer i when i < 1508 ->
+                    81.0 / 10.0 + Math.sqrt(2.0 / 5.0 * (total - 7839.0 / 40.0));
+            default ->
+                    conditionalRounding(325.0 / 18.0 + Math.sqrt(2.0 / 9.0 * (total - 54215.0 / 72.0)));
+        };
+    }
+
+    public static double conditionalRounding(double value) {
+        double threshold = 1e-8;
+        long nearestInt = Math.round(value);
+        double diff = Math.abs(value - nearestInt);
+        return diff < threshold ? nearestInt : value;
+    }
+
+    public static void splashExp(int amount, Location location) {
+        while (amount > 0) {
+            var nextOrbValue = firstMatchedExp(amount);
+            var experienceOrb = location.getWorld().spawn(location, ExperienceOrb.class, CreatureSpawnEvent.SpawnReason.NATURAL);
+            experienceOrb.setExperience(nextOrbValue);
+            experienceOrb.setVelocity(randomVector().multiply(0.3));
+            amount -= nextOrbValue;
         }
-        throw new IllegalArgumentException("exp too large");
+    }
+
+    private static Vector randomVector() {
+        return new Vector(random.nextDouble() * 2 - 1, random.nextDouble() * 2 - 1, random.nextDouble() * 2 - 1);
+    }
+
+    private static int firstMatchedExp(int remaining) {
+        for (int i : usableSplashExpList) {
+            if (i <= remaining) return i;
+        }
+        throw new IllegalStateException("shouldn't be here");
     }
 
     /**

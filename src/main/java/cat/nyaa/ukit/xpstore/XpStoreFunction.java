@@ -12,28 +12,23 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.ThrownExpBottle;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.ExpBottleEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Listener {
     private final SpigotLoader pluginInstance;
     private final NamespacedKey EXPAmountKey;
     private final NamespacedKey LoreLineIndexKey;
     private final String EXPBOTTLE_PERMISSION_NODE = "ukit.xpstore";
-    private final Map<UUID, Integer> playerExpBottleMap = new HashMap<>();
     private final List<String> subCommands = List.of("store", "take");
 
     public XpStoreFunction(SpigotLoader pluginInstance) {
@@ -166,23 +161,12 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         return itemStack.getItemMeta().getPersistentDataContainer().has(EXPAmountKey, PersistentDataType.INTEGER);
     }
 
-    private boolean isExpContainer(Entity entity) {
-        return entity.getPersistentDataContainer().has(EXPAmountKey, PersistentDataType.INTEGER);
-    }
-
     private int getExpContained(ItemStack itemStack) {
         if (!isExpContainer(itemStack)) {
             return 0;
         } else {
             return itemStack.getItemMeta().getPersistentDataContainer().get(EXPAmountKey, PersistentDataType.INTEGER);
         }
-    }
-
-    private int getExpContained(Entity entity) {
-        if (!isExpContainer(entity))
-            return 0;
-        else
-            return entity.getPersistentDataContainer().get(EXPAmountKey, PersistentDataType.INTEGER);
     }
 
     private ItemStack addExpToItemStack(ItemStack itemStack, int amount) {
@@ -196,16 +180,6 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         }
         itemStack.setItemMeta(updateLore(itemMeta));
         return itemStack;
-    }
-
-    private void addExpToEntity(Entity entity, int amount) {
-        if (!isExpContainer(entity)) {
-            entity.getPersistentDataContainer().set(EXPAmountKey, PersistentDataType.INTEGER, amount);
-        } else {
-            entity.getPersistentDataContainer().set(EXPAmountKey, PersistentDataType.INTEGER,
-                    entity.getPersistentDataContainer().get(EXPAmountKey, PersistentDataType.INTEGER) + amount
-            );
-        }
     }
 
     private ItemMeta updateLore(ItemMeta itemMeta) {
@@ -236,33 +210,13 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         return itemMeta;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPlayerInteractWithExpBottle(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) {
-            return;
-        }
-        if (event.getItem() == null)
-            return;
-        playerExpBottleMap.put(event.getPlayer().getUniqueId(), getExpContained(event.getItem()));
-    }
-
     @EventHandler(ignoreCancelled = true)
-    public void onThrewExpBottleLaunch(ProjectileLaunchEvent event) {
-        if (!(event.getEntity().getShooter() instanceof Player shooterPlayer))
+    public void onExpBottleHit(ProjectileHitEvent event) {
+        if (!(event.getEntity() instanceof ThrownExpBottle thrownExpBottle))
             return;
-        if (event.getEntity().getType() != EntityType.EXPERIENCE_BOTTLE)
-            return;
-        if (!playerExpBottleMap.containsKey(shooterPlayer.getUniqueId()))
-            return;
-        var amount = playerExpBottleMap.remove(shooterPlayer.getUniqueId());
-        addExpToEntity(event.getEntity(), amount);
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onExpBottleHitGround(ExpBottleEvent event) {
-        if (!(event.getEntity().getShooter() instanceof Player))
-            return;
-        var amount = getExpContained(event.getEntity());
-        event.setExperience(event.getExperience() + amount);
+        var item = thrownExpBottle.getItem();
+        if (!isExpContainer(item)) return;
+        var expAmount = getExpContained(item);
+        ExperienceUtils.splashExp(expAmount, thrownExpBottle.getLocation());
     }
 }
