@@ -5,7 +5,6 @@ import cat.nyaa.ukit.utils.ExperienceUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
-import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import land.melon.lab.simplelanguageloader.utils.ItemUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import org.bukkit.Bukkit;
@@ -20,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -292,6 +292,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
 
     @EventHandler
     public void onRightClickBottle(PlayerInteractEvent event) {
+        if (!pluginInstance.config.xpStoreConfig.enableQuickTake) return;
         if (event.getPlayer().isSneaking()) return;
         if (!List.of(Action.RIGHT_CLICK_BLOCK, Action.RIGHT_CLICK_AIR).contains(event.getAction()))
             return;
@@ -299,6 +300,10 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         if (item == null) return;
         if (!isExpContainer(item)) return;
         event.setCancelled(true);
+
+        var itemAmount = item.getAmount();
+        var amountContain = getExpContained(item);
+        if (amountContain == 0) return;
 
         var timeNow = System.currentTimeMillis();
         var expireTime = quickTakeArmMap.getOrDefault(event.getPlayer().getUniqueId(), 0L);
@@ -308,8 +313,6 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
             return;
         }
 
-        var itemAmount = item.getAmount();
-        var amountContain = getExpContained(item);
         // amountContain * quickTakeRatio or quickTakeMinimumAmount if amountContain enough, or take all at once
         var amountPreference = Objects.requireNonNullElse(getQuickTakePreference(item), getDefaultMinimumTakeAmount(amountContain));
         var amountTake = Math.min(amountContain, amountPreference);
@@ -332,7 +335,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
     }
 
     @EventHandler
-    public void onPlayerSwitchItem(PlayerInventorySlotChangeEvent event) {
+    public void onPlayerSwitchItem(PlayerItemHeldEvent event) {
         quickTakeArmMap.remove(event.getPlayer().getUniqueId());
     }
 
