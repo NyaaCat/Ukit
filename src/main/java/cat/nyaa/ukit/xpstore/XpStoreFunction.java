@@ -5,6 +5,7 @@ import cat.nyaa.ukit.utils.ExperienceUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
+import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import land.melon.lab.simplelanguageloader.utils.ItemUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import org.bukkit.Bukkit;
@@ -16,25 +17,32 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.ThrownExpBottle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Listener {
     private final SpigotLoader pluginInstance;
     private final NamespacedKey EXPAmountKey;
-    private final NamespacedKey LoreLineIndexKey;
+    private final NamespacedKey AmountLoreIndexKey;
+    private final NamespacedKey QuickTakePreferenceKey;
+    private final NamespacedKey QuickTakeLoreIndexKey;
     private final String EXPBOTTLE_PERMISSION_NODE = "ukit.xpstore";
-    private final List<String> subCommands = List.of("store", "take");
+    private final Map<UUID, Long> quickTakeArmMap = new HashMap<>();
+    private final List<String> subCommands = List.of("store", "take", "quicktake");
 
     public XpStoreFunction(SpigotLoader pluginInstance) {
         this.pluginInstance = pluginInstance;
         EXPAmountKey = new NamespacedKey(pluginInstance, "EXP_AMOUNT");
-        LoreLineIndexKey = new NamespacedKey(pluginInstance, "LORE_LINE_INDEX");
+        AmountLoreIndexKey = new NamespacedKey(pluginInstance, "LORE_LINE_INDEX");
+        QuickTakeLoreIndexKey = new NamespacedKey(pluginInstance, "QUICK_TAKE_LORE_INDEX");
+        QuickTakePreferenceKey = new NamespacedKey(pluginInstance, "QUICK_TAKE_AMOUNT");
     }
 
     @Override
@@ -66,10 +74,11 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         var itemSlot = itemInHandPair.key();
         var itemInHand = itemInHandPair.value();
         var amountItem = itemInHand.getAmount();
+        var expInItem = getExpContained(itemInHand);
         int amountInput;
         try {
             amountInput = Integer.parseInt(args[1]);
-            if (amountInput < 0 || amountInput > config.maxAmount)
+            if (amountInput < 0)
                 throw new IllegalArgumentException();
         } catch (IllegalArgumentException e) {
             senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notValidAmount.produce(Pair.of("input", args[1])));
@@ -82,6 +91,12 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
                         Pair.of("expTotal", expTotal),
                         Pair.of("expPerBottle", amountInput),
                         Pair.of("amount", amountItem)
+                ));
+                return true;
+            }
+            if (amountInput + expInItem > config.maxAmount) {
+                senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.maximumExceed.produce(
+                        Pair.of("maximum", config.maxAmount)
                 ));
                 return true;
             }
@@ -103,9 +118,19 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
             }
             var itemSaved = addExpToItemStack(itemInHand, -amountAverage);
             Utils.setItemInHand(senderPlayer, Pair.of(itemSlot, itemSaved));
-            ExperienceUtils.addPlayerExperience(senderPlayer, expTotal);
+            ExperienceUtils.addPlayerExperience(senderPlayer, expTotal, true);
             senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.expTook.produce(
-                    Pair.of("amount", expTotal)
+                    Pair.of("amount", expTotal),
+                    Pair.of("remaining", getExpContained(itemSaved))
+            ));
+        } else if (args[0].equalsIgnoreCase("quicktake")) {
+            if (!isExpContainer(itemInHand)) {
+                addExpToItemStack(itemInHand, 0);
+            }
+            var itemSaved = updateQuickTakePreference(itemInHand, amountInput);
+            Utils.setItemInHand(senderPlayer, Pair.of(itemSlot, itemSaved));
+            senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.quickTakePrefUpdated.produce(
+                    Pair.of("amount", amountInput)
             ));
         }
         return true;
@@ -142,6 +167,8 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
                     return List.of(pluginInstance.language.xpStoreLang.noExpBottleInHandTabNotice.produce());
                 else
                     return List.of(String.valueOf(getExpContained(item.value()) * item.value().getAmount()));
+            } else if (args[0].equalsIgnoreCase("quicktake")) {
+                return List.of("<amount>");
             } else {
                 return List.of();
             }
@@ -171,19 +198,18 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
 
     private ItemStack addExpToItemStack(ItemStack itemStack, int amount) {
         var itemMeta = itemStack.hasItemMeta() ? itemStack.getItemMeta() : Bukkit.getItemFactory().getItemMeta(itemStack.getType());
-        assert itemMeta != null;
         if (!isExpContainer(itemStack)) {
             itemMeta.getPersistentDataContainer().set(EXPAmountKey, PersistentDataType.INTEGER, amount);
         } else {
             var expAlready = itemMeta.getPersistentDataContainer().get(EXPAmountKey, PersistentDataType.INTEGER);
             itemMeta.getPersistentDataContainer().set(EXPAmountKey, PersistentDataType.INTEGER, expAlready + amount);
         }
-        itemStack.setItemMeta(updateLore(itemMeta));
+        itemStack.setItemMeta(updateAmountLore(itemMeta));
         return itemStack;
     }
 
-    private ItemMeta updateLore(ItemMeta itemMeta) {
-        var loreIndex = itemMeta.getPersistentDataContainer().get(LoreLineIndexKey, PersistentDataType.INTEGER);
+    private ItemMeta updateAmountLore(ItemMeta itemMeta) {
+        var loreIndex = itemMeta.getPersistentDataContainer().get(AmountLoreIndexKey, PersistentDataType.INTEGER);
         var amount = itemMeta.getPersistentDataContainer().get(EXPAmountKey, PersistentDataType.INTEGER);
         var lore = itemMeta.getLore();
         if (lore == null)
@@ -205,9 +231,53 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
                 lore.set(loreIndex, expAmountText);
             }
         }
-        itemMeta.getPersistentDataContainer().set(LoreLineIndexKey, PersistentDataType.INTEGER, loreIndex);
+        itemMeta.getPersistentDataContainer().set(AmountLoreIndexKey, PersistentDataType.INTEGER, loreIndex);
         itemMeta.setLore(lore);
         return itemMeta;
+    }
+
+    private ItemMeta updateQuickTakePreferenceLore(ItemMeta itemMeta) {
+        var loreIndex = itemMeta.getPersistentDataContainer().get(QuickTakeLoreIndexKey, PersistentDataType.INTEGER);
+        var amount = itemMeta.getPersistentDataContainer().get(QuickTakePreferenceKey, PersistentDataType.INTEGER);
+        var lore = itemMeta.getLore();
+        if (lore == null)
+            lore = new ArrayList<>();
+        var expAmountText = pluginInstance.language.xpStoreLang.loreQuickTakePattern.produce(Pair.of("amount", amount));
+
+        if (loreIndex == null) {
+            //first time startup
+            lore.add(expAmountText);
+            loreIndex = lore.size() - 1;
+        } else {
+            //already an exp bottle
+            if (loreIndex > lore.size() - 1) {
+                //index out of bound
+                lore.add(expAmountText);
+                loreIndex = lore.size() - 1;
+            } else {
+                //index in bound
+                lore.set(loreIndex, expAmountText);
+            }
+        }
+        itemMeta.getPersistentDataContainer().set(QuickTakeLoreIndexKey, PersistentDataType.INTEGER, loreIndex);
+        itemMeta.setLore(lore);
+        return itemMeta;
+    }
+
+
+    private ItemStack updateQuickTakePreference(ItemStack itemStack, int amount) {
+        // require isExpContainer
+        var itemMeta = itemStack.getItemMeta();
+        itemMeta.getPersistentDataContainer().set(QuickTakePreferenceKey, PersistentDataType.INTEGER, amount);
+        itemStack.setItemMeta(updateQuickTakePreferenceLore(itemMeta));
+        return itemStack;
+    }
+
+    private Integer getQuickTakePreference(ItemStack itemStack) {
+        var meta = itemStack.getItemMeta();
+        if (meta == null) return null;
+        else
+            return meta.getPersistentDataContainer().get(QuickTakePreferenceKey, PersistentDataType.INTEGER);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -218,5 +288,58 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         if (!isExpContainer(item)) return;
         var expAmount = getExpContained(item);
         ExperienceUtils.splashExp(expAmount, thrownExpBottle.getLocation());
+    }
+
+    @EventHandler
+    public void onRightClickBottle(PlayerInteractEvent event) {
+        if (event.getPlayer().isSneaking()) return;
+        if (!List.of(Action.RIGHT_CLICK_BLOCK, Action.RIGHT_CLICK_AIR).contains(event.getAction()))
+            return;
+        var item = event.getItem();
+        if (item == null) return;
+        if (!isExpContainer(item)) return;
+        event.setCancelled(true);
+
+        var timeNow = System.currentTimeMillis();
+        var expireTime = quickTakeArmMap.getOrDefault(event.getPlayer().getUniqueId(), 0L);
+        quickTakeArmMap.put(event.getPlayer().getUniqueId(), timeNow + pluginInstance.config.xpStoreConfig.quickTakeArmTimeInMillisecond);
+        if (timeNow > expireTime) {
+            event.getPlayer().sendActionBar(pluginInstance.language.xpStoreLang.quickTakeArmed.produce());
+            return;
+        }
+
+        var itemAmount = item.getAmount();
+        var amountContain = getExpContained(item);
+        // amountContain * quickTakeRatio or quickTakeMinimumAmount if amountContain enough, or take all at once
+        var amountPreference = Objects.requireNonNullElse(getQuickTakePreference(item), getDefaultMinimumTakeAmount(amountContain));
+        var amountTake = Math.min(amountContain, amountPreference);
+        if (amountTake == 0) return;
+        addExpToItemStack(item, -amountTake);
+        Utils.setItemInHand(event.getPlayer(), Pair.of(event.getHand(), item));
+        var amountTotal = itemAmount * amountTake;
+        ExperienceUtils.splashExp(amountTotal, event.getPlayer().getLocation());
+
+        event.getPlayer().sendActionBar(pluginInstance.language.xpStoreLang.quickTakeNotice.produce(
+                Pair.of("amount", amountTotal),
+                Pair.of("remaining", getExpContained(item))
+        ));
+    }
+
+    // clean up
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        quickTakeArmMap.remove(event.getPlayer().getUniqueId());
+    }
+
+    @EventHandler
+    public void onPlayerSwitchItem(PlayerInventorySlotChangeEvent event) {
+        quickTakeArmMap.remove(event.getPlayer().getUniqueId());
+    }
+
+    private int getDefaultMinimumTakeAmount(int amountContain) {
+        // amountContain * quickTakeRatio or quickTakeMinimumAmount
+        var quickTakeRatio = pluginInstance.config.xpStoreConfig.quickTakeRatio;
+        var quickTakeMinimumAmount = pluginInstance.config.xpStoreConfig.quickTakeMinimumAmount;
+        return Math.max((int) (amountContain * quickTakeRatio), quickTakeMinimumAmount);
     }
 }

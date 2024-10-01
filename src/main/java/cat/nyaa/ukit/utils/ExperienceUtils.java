@@ -78,8 +78,10 @@ public final class ExperienceUtils {
     }
 
     public static void splashExp(int amount, Location location) {
+        var nextOrbValueIndex = 0;
         while (amount > 0) {
-            var nextOrbValue = firstMatchedExp(amount);
+            nextOrbValueIndex = firstMatchedExpIndex(amount, nextOrbValueIndex);
+            var nextOrbValue = usableSplashExpList.get(nextOrbValueIndex);
             var experienceOrb = location.getWorld().spawn(location, ExperienceOrb.class, CreatureSpawnEvent.SpawnReason.NATURAL);
             experienceOrb.setExperience(nextOrbValue);
             experienceOrb.setVelocity(randomVector().multiply(0.3));
@@ -91,9 +93,9 @@ public final class ExperienceUtils {
         return new Vector(random.nextDouble() * 2 - 1, random.nextDouble() * 2 - 1, random.nextDouble() * 2 - 1);
     }
 
-    private static int firstMatchedExp(int remaining) {
-        for (int i : usableSplashExpList) {
-            if (i <= remaining) return i;
+    private static int firstMatchedExpIndex(int remaining, int startingIndex) {
+        for (int i = startingIndex; i < usableSplashExpList.size(); i++) {
+            if (usableSplashExpList.get(i) <= remaining) return i;
         }
         throw new IllegalStateException("shouldn't be here");
     }
@@ -105,13 +107,18 @@ public final class ExperienceUtils {
      * @param p   the target player
      * @param exp amount of xp to be added to the player,
      *            if negative, then subtract from the player.
+     * @param applyMending Mend players items with mending, with same behavior as picking up orbs. calls Player.giveExp(int,boolean)
      * @throws IllegalArgumentException if the player ended with negative xp
      */
-    public static void addPlayerExperience(Player p, int exp) {
+    public static void addPlayerExperience(Player p, int exp, boolean applyMending) {
         if (exp > 0) {
-            p.giveExp(exp);
+            p.giveExp(exp, applyMending);
         } else if (exp < 0) {
             subtractExpPoints(p, -exp);
         }
+    }
+
+    public static void addPlayerExperience(Player p, int exp) {
+        addPlayerExperience(p, exp, false);
     }
 }
