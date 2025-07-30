@@ -13,7 +13,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <minecraft.version>1.21.1</minecraft.version>
+        <minecraft.version>1.21.8</minecraft.version>
         <github.package.url>${env.GITHUB_MAVEN_URL}</github.package.url>
         <maven.local.dir>${env.MAVEN_DIR}</maven.local.dir>
     </properties>
@@ -71,19 +71,19 @@
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
-            <version>3.46.1.0</version>
+            <version>3.50.3.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.essentialsx</groupId>
             <artifactId>EssentialsX</artifactId>
-            <version>2.20.1</version>
+            <version>2.21.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.essentialsx</groupId>
             <artifactId>EssentialsXDiscord</artifactId>
-            <version>2.20.1</version>
+            <version>2.21.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

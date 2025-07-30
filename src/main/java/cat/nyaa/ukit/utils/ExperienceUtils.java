@@ -82,7 +82,7 @@ public final class ExperienceUtils {
         while (amount > 0) {
             nextOrbValueIndex = firstMatchedExpIndex(amount, nextOrbValueIndex);
             var nextOrbValue = usableSplashExpList.get(nextOrbValueIndex);
-            var experienceOrb = location.getWorld().spawn(location, ExperienceOrb.class, CreatureSpawnEvent.SpawnReason.NATURAL);
+            var experienceOrb = location.getWorld().spawn(location, ExperienceOrb.class, CreatureSpawnEvent.SpawnReason.CUSTOM);
             experienceOrb.setExperience(nextOrbValue);
             experienceOrb.setVelocity(randomVector().multiply(0.3));
             amount -= nextOrbValue;
