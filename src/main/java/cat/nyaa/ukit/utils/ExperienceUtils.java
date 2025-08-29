@@ -16,7 +16,7 @@ public final class ExperienceUtils {
     // https://github.com/NyaaCat/NyaaCore/blob/0bc366debf51b0f4dcd867b657be19e14e772100/src/main/java/cat/nyaa/nyaacore/utils/ExperienceUtils.java
 
     // refer to https://minecraft.wiki/w/Experience
-    private static final List<Integer> usableSplashExpList = List.of(1, 2, 6, 16, 36, 72, 148, 306, 616, 1236, 2476, 32767, 65535, 131071).reversed();
+    private static final List<Integer> usableSplashExpList = List.of(1, 2, 6, 16, 36, 72, 148, 306, 616, 1236, 2476, 32767).reversed();
     private static final Random random = new Random();
 
     /**
