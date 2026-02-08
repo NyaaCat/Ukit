@@ -5,6 +5,7 @@ import cat.nyaa.ukit.utils.ExperienceUtils;
 import cat.nyaa.ukit.utils.SubCommandExecutor;
 import cat.nyaa.ukit.utils.SubTabCompleter;
 import cat.nyaa.ukit.utils.Utils;
+import com.destroystokyo.paper.event.player.PlayerLaunchProjectileEvent;
 import land.melon.lab.simplelanguageloader.utils.ItemUtils;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import org.bukkit.Bukkit;
@@ -15,6 +16,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.ThrownExpBottle;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.ExpBottleEvent;
@@ -283,9 +285,20 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
             return meta.getPersistentDataContainer().get(QuickTakePreferenceKey, PersistentDataType.INTEGER);
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerLaunchExpBottle(PlayerLaunchProjectileEvent event) {
+        if (!(event.getProjectile() instanceof ThrownExpBottle thrownExpBottle)) return;
+        var item = event.getItemStack();
+        if (!isExpContainer(item)) return;
+        int expAmount = getExpContained(item);
+        if (expAmount <= 0) return;
+        thrownExpBottle.getPersistentDataContainer().set(ThrownExpAmountKey, PersistentDataType.INTEGER, expAmount);
+    }
+
+    @EventHandler(ignoreCancelled = true)
     public void onExpBottleLaunch(ProjectileLaunchEvent event) {
         if (!(event.getEntity() instanceof ThrownExpBottle thrownExpBottle)) return;
+        if (thrownExpBottle.getPersistentDataContainer().has(ThrownExpAmountKey, PersistentDataType.INTEGER)) return;
         var item = thrownExpBottle.getItem();
         if (!isExpContainer(item)) return;
         int expAmount = getExpContained(item);
@@ -293,7 +306,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         thrownExpBottle.getPersistentDataContainer().set(ThrownExpAmountKey, PersistentDataType.INTEGER, expAmount);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onExpBottleHit(ExpBottleEvent event) {
         ThrownExpBottle thrownExpBottle = event.getEntity();
         Integer expAmount = thrownExpBottle.getPersistentDataContainer().get(ThrownExpAmountKey, PersistentDataType.INTEGER);
