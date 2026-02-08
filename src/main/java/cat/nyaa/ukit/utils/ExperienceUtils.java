@@ -9,6 +9,7 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 import java.util.Random;
+import java.util.function.Consumer;
 
 
 public final class ExperienceUtils {
@@ -78,13 +79,23 @@ public final class ExperienceUtils {
     }
 
     public static void splashExp(int amount, Location location) {
+        splashExp(amount, location, null);
+    }
+
+    public static void splashExp(int amount, Location location, Consumer<ExperienceOrb> orbCustomizer) {
         var nextOrbValueIndex = 0;
         while (amount > 0) {
             nextOrbValueIndex = firstMatchedExpIndex(amount, nextOrbValueIndex);
             var nextOrbValue = usableSplashExpList.get(nextOrbValueIndex);
-            var experienceOrb = location.getWorld().spawn(location, ExperienceOrb.class, CreatureSpawnEvent.SpawnReason.CUSTOM);
-            experienceOrb.setExperience(nextOrbValue);
-            experienceOrb.setVelocity(randomVector().multiply(0.3));
+            location.getWorld().spawn(location, ExperienceOrb.class, orb -> {
+                // Configure orb value before it is added to world so merge-on-spawn
+                // sees the final value instead of default 0.
+                orb.setExperience(nextOrbValue);
+                orb.setVelocity(randomVector().multiply(0.3));
+                if (orbCustomizer != null) {
+                    orbCustomizer.accept(orb);
+                }
+            }, CreatureSpawnEvent.SpawnReason.CUSTOM);
             amount -= nextOrbValue;
         }
     }

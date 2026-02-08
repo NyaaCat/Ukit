@@ -37,6 +37,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
     private final NamespacedKey QuickTakePreferenceKey;
     private final NamespacedKey QuickTakeLoreIndexKey;
     private final NamespacedKey ThrownExpAmountKey;
+    private final NamespacedKey XpStoreOrbMarkerKey;
     private final String EXPBOTTLE_PERMISSION_NODE = "ukit.xpstore";
     private final Map<UUID, Long> quickTakeArmMap = new HashMap<>();
     private final List<String> subCommands = List.of("store", "take", "quicktake");
@@ -48,6 +49,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         QuickTakeLoreIndexKey = new NamespacedKey(pluginInstance, "QUICK_TAKE_LORE_INDEX");
         QuickTakePreferenceKey = new NamespacedKey(pluginInstance, "QUICK_TAKE_AMOUNT");
         ThrownExpAmountKey = new NamespacedKey(pluginInstance, "THROWN_EXP_AMOUNT");
+        XpStoreOrbMarkerKey = new NamespacedKey(pluginInstance, "XPSTORE_ORB_MARKER");
     }
 
     @Override
@@ -91,6 +93,13 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         }
         if (args[0].equalsIgnoreCase("store")) {
             var expTotal = amountItem * amountInput;
+            debugLog("store request player=" + senderPlayer.getName()
+                    + " thread=" + Thread.currentThread().getName()
+                    + " bottles=" + amountItem
+                    + " amount_per_bottle=" + amountInput
+                    + " total=" + expTotal
+                    + " exp_in_item=" + expInItem
+                    + " exp_player=" + ExperienceUtils.getExpPoints(senderPlayer));
             if (ExperienceUtils.getExpPoints(senderPlayer) < expTotal) {
                 senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notEnoughExp.produce(
                         Pair.of("expTotal", expTotal),
@@ -115,6 +124,13 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
             var expTotal = getMinimumDivisible(amountInput, amountItem);
             var amountAverage = expTotal / amountItem;
             var amountContained = getExpContained(itemInHand);
+            debugLog("take request player=" + senderPlayer.getName()
+                    + " thread=" + Thread.currentThread().getName()
+                    + " bottles=" + amountItem
+                    + " ask_total=" + amountInput
+                    + " actual_total=" + expTotal
+                    + " amount_per_bottle=" + amountAverage
+                    + " amount_contained=" + amountContained);
             if (amountContained < amountAverage) {
                 senderPlayer.sendMessage(pluginInstance.language.xpStoreLang.notEnoughExpInBottle.produce(
                         Pair.of("amount", amountAverage)
@@ -285,6 +301,19 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
             return meta.getPersistentDataContainer().get(QuickTakePreferenceKey, PersistentDataType.INTEGER);
     }
 
+    private boolean isDebugEnabled() {
+        return pluginInstance.config.xpStoreConfig.debugLog;
+    }
+
+    private boolean isDebugVerbose() {
+        return pluginInstance.config.xpStoreConfig.debugVerbose;
+    }
+
+    private void debugLog(String message) {
+        if (!isDebugEnabled()) return;
+        pluginInstance.getLogger().info("[xpstore-debug] " + message);
+    }
+
     @EventHandler(ignoreCancelled = true)
     public void onPlayerLaunchExpBottle(PlayerLaunchProjectileEvent event) {
         if (!(event.getProjectile() instanceof ThrownExpBottle thrownExpBottle)) return;
@@ -293,6 +322,12 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         int expAmount = getExpContained(item);
         if (expAmount <= 0) return;
         thrownExpBottle.getPersistentDataContainer().set(ThrownExpAmountKey, PersistentDataType.INTEGER, expAmount);
+        if (isDebugVerbose()) {
+            debugLog("launch(PlayerLaunchProjectileEvent) thread=" + Thread.currentThread().getName()
+                    + " player=" + event.getPlayer().getName()
+                    + " projectile=" + thrownExpBottle.getUniqueId()
+                    + " exp_amount=" + expAmount);
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -304,12 +339,19 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         int expAmount = getExpContained(item);
         if (expAmount <= 0) return;
         thrownExpBottle.getPersistentDataContainer().set(ThrownExpAmountKey, PersistentDataType.INTEGER, expAmount);
+        if (isDebugVerbose()) {
+            debugLog("launch(ProjectileLaunchEvent) thread=" + Thread.currentThread().getName()
+                    + " projectile=" + thrownExpBottle.getUniqueId()
+                    + " exp_amount=" + expAmount);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onExpBottleHit(ExpBottleEvent event) {
         ThrownExpBottle thrownExpBottle = event.getEntity();
+        int vanillaExp = event.getExperience();
         Integer expAmount = thrownExpBottle.getPersistentDataContainer().get(ThrownExpAmountKey, PersistentDataType.INTEGER);
+        boolean fromProjectilePdc = expAmount != null;
         if (expAmount == null) {
             var item = thrownExpBottle.getItem();
             if (!isExpContainer(item)) return;
@@ -317,8 +359,16 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         }
         if (expAmount <= 0) return;
         event.setExperience(0);
-        ExperienceUtils.splashExp(expAmount, thrownExpBottle.getLocation());
+        ExperienceUtils.splashExp(expAmount, thrownExpBottle.getLocation(), orb ->
+                orb.getPersistentDataContainer().set(XpStoreOrbMarkerKey, PersistentDataType.BYTE, (byte) 1)
+        );
         thrownExpBottle.getPersistentDataContainer().remove(ThrownExpAmountKey);
+        debugLog("hit(ExpBottleEvent) thread=" + Thread.currentThread().getName()
+                + " projectile=" + thrownExpBottle.getUniqueId()
+                + " vanilla_exp=" + vanillaExp
+                + " ukit_exp=" + expAmount
+                + " source=" + (fromProjectilePdc ? "projectile_pdc" : "item_pdc_fallback")
+                + " show_effect=" + event.getShowEffect());
     }
 
     @EventHandler
@@ -351,7 +401,15 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         addExpToItemStack(item, -amountTake);
         Utils.setItemInHand(event.getPlayer(), Pair.of(event.getHand(), item));
         var amountTotal = itemAmount * amountTake;
-        ExperienceUtils.splashExp(amountTotal, event.getPlayer().getLocation());
+        ExperienceUtils.splashExp(amountTotal, event.getPlayer().getLocation(), orb ->
+                orb.getPersistentDataContainer().set(XpStoreOrbMarkerKey, PersistentDataType.BYTE, (byte) 1)
+        );
+        debugLog("quicktake produce thread=" + Thread.currentThread().getName()
+                + " player=" + event.getPlayer().getName()
+                + " item_amount=" + itemAmount
+                + " amount_take_per_bottle=" + amountTake
+                + " total_spawned=" + amountTotal
+                + " remaining_per_bottle=" + getExpContained(item));
 
         event.getPlayer().sendActionBar(pluginInstance.language.xpStoreLang.quickTakeNotice.produce(
                 Pair.of("amount", amountTotal),

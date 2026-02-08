@@ -6,4 +6,6 @@ public class XpStoreConfig {
     public int quickTakeMinimumAmount = 10;
     public int quickTakeArmTimeInMillisecond = 2000;
     public double quickTakeRatio = 0.01;
+    public boolean debugLog = false;
+    public boolean debugVerbose = false;
 }
