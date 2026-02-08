@@ -14,6 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <minecraft.version>1.21.11</minecraft.version>
+        <plugin.api.version>1.21.8</plugin.api.version>
         <github.package.url>${env.GITHUB_MAVEN_URL}</github.package.url>
         <maven.local.dir>${env.MAVEN_DIR}</maven.local.dir>
     </properties>
