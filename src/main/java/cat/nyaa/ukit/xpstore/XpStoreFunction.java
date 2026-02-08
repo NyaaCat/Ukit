@@ -18,6 +18,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.ExpBottleEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -33,6 +34,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
     private final NamespacedKey AmountLoreIndexKey;
     private final NamespacedKey QuickTakePreferenceKey;
     private final NamespacedKey QuickTakeLoreIndexKey;
+    private final NamespacedKey ThrownExpAmountKey;
     private final String EXPBOTTLE_PERMISSION_NODE = "ukit.xpstore";
     private final Map<UUID, Long> quickTakeArmMap = new HashMap<>();
     private final List<String> subCommands = List.of("store", "take", "quicktake");
@@ -43,6 +45,7 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
         AmountLoreIndexKey = new NamespacedKey(pluginInstance, "LORE_LINE_INDEX");
         QuickTakeLoreIndexKey = new NamespacedKey(pluginInstance, "QUICK_TAKE_LORE_INDEX");
         QuickTakePreferenceKey = new NamespacedKey(pluginInstance, "QUICK_TAKE_AMOUNT");
+        ThrownExpAmountKey = new NamespacedKey(pluginInstance, "THROWN_EXP_AMOUNT");
     }
 
     @Override
@@ -281,14 +284,28 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
     }
 
     @EventHandler
-    public void onExpBottleHit(ExpBottleEvent event) {
-        ThrownExpBottle thrownExpBottle = event.getEntity();
+    public void onExpBottleLaunch(ProjectileLaunchEvent event) {
+        if (!(event.getEntity() instanceof ThrownExpBottle thrownExpBottle)) return;
         var item = thrownExpBottle.getItem();
         if (!isExpContainer(item)) return;
-        event.setExperience(0);
-        var expAmount = getExpContained(item);
+        int expAmount = getExpContained(item);
         if (expAmount <= 0) return;
+        thrownExpBottle.getPersistentDataContainer().set(ThrownExpAmountKey, PersistentDataType.INTEGER, expAmount);
+    }
+
+    @EventHandler
+    public void onExpBottleHit(ExpBottleEvent event) {
+        ThrownExpBottle thrownExpBottle = event.getEntity();
+        Integer expAmount = thrownExpBottle.getPersistentDataContainer().get(ThrownExpAmountKey, PersistentDataType.INTEGER);
+        if (expAmount == null) {
+            var item = thrownExpBottle.getItem();
+            if (!isExpContainer(item)) return;
+            expAmount = getExpContained(item);
+        }
+        if (expAmount <= 0) return;
+        event.setExperience(0);
         ExperienceUtils.splashExp(expAmount, thrownExpBottle.getLocation());
+        thrownExpBottle.getPersistentDataContainer().remove(ThrownExpAmountKey);
     }
 
     @EventHandler
