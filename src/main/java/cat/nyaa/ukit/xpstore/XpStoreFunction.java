@@ -17,7 +17,7 @@ import org.bukkit.entity.ThrownExpBottle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.ExpBottleEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -280,13 +280,14 @@ public class XpStoreFunction implements SubCommandExecutor, SubTabCompleter, Lis
             return meta.getPersistentDataContainer().get(QuickTakePreferenceKey, PersistentDataType.INTEGER);
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onExpBottleHit(ProjectileHitEvent event) {
-        if (!(event.getEntity() instanceof ThrownExpBottle thrownExpBottle))
-            return;
+    @EventHandler
+    public void onExpBottleHit(ExpBottleEvent event) {
+        ThrownExpBottle thrownExpBottle = event.getEntity();
         var item = thrownExpBottle.getItem();
         if (!isExpContainer(item)) return;
+        event.setExperience(0);
         var expAmount = getExpContained(item);
+        if (expAmount <= 0) return;
         ExperienceUtils.splashExp(expAmount, thrownExpBottle.getLocation());
     }
 
