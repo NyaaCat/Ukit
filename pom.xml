@@ -6,15 +6,18 @@
 
     <groupId>cat.nyaa</groupId>
     <artifactId>ukit</artifactId>
-    <version>1.7.4</version>
+    <version>1.7.5</version>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <minecraft.version>1.21.11</minecraft.version>
-        <plugin.api.version>1.21.8</plugin.api.version>
+        <!-- Paper coordinates for Minecraft/Pewpew 26.2, from official metadata -->
+        <minecraft.version>26.2</minecraft.version>
+        <paper.api.version>26.2.build.123-stable</paper.api.version>
+        <plugin.api.version>26.2</plugin.api.version>
         <github.package.url>${env.GITHUB_MAVEN_URL}</github.package.url>
         <maven.local.dir>${env.MAVEN_DIR}</maven.local.dir>
     </properties>
@@ -42,7 +45,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>${minecraft.version}-R0.1-SNAPSHOT</version>
+            <version>${paper.api.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -54,13 +57,13 @@
         <dependency>
             <groupId>cat.nyaa</groupId>
             <artifactId>ecore</artifactId>
-            <version>0.3.4</version>
+            <version>0.3.6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>me.crafter.mc</groupId>
             <artifactId>lockettepro</artifactId>
-            <version>2.15</version>
+            <version>2.17</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -78,19 +81,19 @@
         <dependency>
             <groupId>net.essentialsx</groupId>
             <artifactId>EssentialsX</artifactId>
-            <version>2.21.1</version>
+            <version>2.21.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.essentialsx</groupId>
             <artifactId>EssentialsXDiscord</artifactId>
-            <version>2.21.1</version>
+            <version>2.21.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.11.0</version>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.14.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -106,17 +109,21 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.14.1</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <release>25</release>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.4</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.5.0</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                 </configuration>
@@ -124,7 +131,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -140,7 +147,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>3.12.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -153,7 +160,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
